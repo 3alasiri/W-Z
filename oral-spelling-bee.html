@@ -53,10 +53,11 @@ function renderOral(s){
     var sp=mkEl('div','obs'); sp.append(mkEl('span',null,'Word '+(i+1)+' / '+N),mkEl('span',ph==='sp'?'on':'','1 · Spelling'),mkEl('span',ph==='df'?'on':'','2 · Meaning'));
     var q=s.qs[i]; var w=mkEl('div','obw',ph==='sp'?'🔊 Listen, then spell or say the word':'What does “'+q.q+'” mean?');
     mic=mkEl('button','obm','🎤'); mic.type='button'; mic.setAttribute('aria-label','Speak'); hear=mkEl('div','obh',SR?'Tap the microphone and answer':'⚠️ Voice is not supported here. Open in Chrome.'); fb=mkEl('div','obf');
-    var left=Math.max(0,3-rc), rp=mkEl('button','btn','🔊 Repeat ('+left+')'); rp.type='button'; rp.disabled=ph==='sp'&&left<=0; rp.addEventListener('click',function(){ if(busy||rp.disabled) return; if(ph==='sp'){ rc++; if(rc>=3) hear.textContent='💡 The word is: '+q.q; else hear.textContent='Tap the microphone and answer'; rp.textContent='🔊 Repeat ('+Math.max(0,3-rc)+')'; rp.disabled=rc>=3; } speakQ(); });
-    var sk=mkEl('button','btn','⏭ Skip'); sk.type='button'; sk.addEventListener('click',function(){ if(!busy) record(null); });
-    var row=mkEl('div','obr'); row.append(rp,sk);
-    mic.disabled=false; mic.addEventListener('click',function(){ if(!SR) return; answer(); }); box.append(bar,sp,w,mic,hear,fb,row); drawLog();
+    var left=Math.max(0,3-rc), rp=mkEl('button','btn','🔊 Repeat ('+left+')'); rp.type='button'; rp.disabled=ph==='sp'&&left<=0; rp.addEventListener('click',function(){ if(rp.disabled) return; stop(); busy=false; if(ph==='sp') rc++; ui(); if(ph==='sp'&&rc>=3) hear.textContent='💡 The word is: '+q.q; speakQ(); });
+    var sk=mkEl('button','btn','⏭ Skip'); sk.type='button'; sk.addEventListener('click',function(){ stop(); busy=false; record(null); });
+    var sp2=mkEl('button','btn','⏹ Stop'); sp2.type='button'; sp2.addEventListener('click',function(){ stop(); busy=false; mic.classList.remove('rec'); hear.textContent='Stopped. Tap the microphone or Repeat.'; });
+    var row=mkEl('div','obr'); row.append(rp,sp2,sk);
+    mic.disabled=false; mic.addEventListener('click',function(){ if(!SR) return; stop(); busy=false; answer(); }); box.append(bar,sp,w,mic,hear,fb,row); drawLog();
     slots=null; if(ph==='sp'){ slots=mkEl('div','osl'); for(var z=0;z<q.a.length;z++) slots.appendChild(mkEl('span','osb','')); box.insertBefore(slots,hear); }
   }
   function speakQ(){ var q=s.qs[s.o.r.length], my=++run, pos=q.pos.replace(/\./g,'').replace('/','or');
