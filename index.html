@@ -4111,13 +4111,20 @@ function renderOral(s){
      hard=setTimeout(fin,ms); rec.onresult=function(e){ var it=''; for(var i=e.resultIndex;i<e.results.length;i++){ var r=e.results[i]; if(r.isFinal){ fins.push(r[0].transcript); for(var j=0;j<r.length;j++) alts.push(r[j].transcript); } else it+=r[0].transcript; } lastIt=(fins.join(' ')+' '+it).trim(); if(live) live(lastIt); clearTimeout(idle); idle=setTimeout(fin,2200); };
     rec.onerror=function(e){ fin(e.error==='no-speech'||e.error==='aborted'?'':(e.error||'x')); }; rec.onend=function(){ fin(''); }; try{ rec.start(); }catch(e){ fin('x'); } }); }
   function drawSlots(word,r){ if(!slots) return; var kids=slots.children; for(var k=0;k<kids.length;k++){ var c=kids[k]; c.className='osb'; c.textContent=''; if(k<r.p){ c.textContent=word[k].toUpperCase(); c.classList.add('g'); } else if(k===r.p&&r.bad){ c.textContent=(r.heard||'?').slice(0,1).toUpperCase(); c.classList.add('r'); } } }
-  function listenSpell(word){ return new Promise(function(ok){ var done=false, lastIt='', fins=[], idle=null, badT=null, hard, r0={p:0}; try{ rec=new SR(); }catch(e){ ok({err:'x'}); return; } rec.lang='en-US'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=3;
-    function fin(res,er){ if(done) return; done=true; clearTimeout(idle); clearTimeout(badT); clearTimeout(hard); try{ rec.stop(); }catch(e){} ok({ok:res,err:er,heard:lastIt}); }
-    function check(){ var r=oEval(lastIt,word); r0=r; drawSlots(word,r); hear.textContent='✍️ '+oSeq(lastIt).join(' ').toUpperCase(); clearTimeout(badT); if(r.done) return fin(true); if(r.bad) badT=setTimeout(function(){ fin(false); },600); }
-    hard=setTimeout(function(){ fin(false); },15000);
-    rec.onresult=function(e){ var it=''; fins=[]; for(var i=0;i<e.results.length;i++){ var rr=e.results[i]; if(rr.isFinal) fins.push(rr[0].transcript); else it+=' '+rr[0].transcript; } lastIt=(fins.join(' ')+' '+it).trim(); check(); clearTimeout(idle); idle=setTimeout(function(){ fin(oEval(lastIt,word).done); },2600); };
-    rec.onerror=function(e){ if(e.error==='no-speech'||e.error==='aborted') fin(false,''); else fin(false,e.error||'x'); }; rec.onend=function(){ fin(oEval(lastIt,word).done); };
-    try{ rec.start(); }catch(e){ fin(false,'x'); } }); }
+  function listenSpell(word){ return new Promise(function(ok){ var my=run, p=0, mist=0, finished=false, sess=null, hard, noSpeech;
+    function fin(res,er){ if(finished) return; finished=true; clearTimeout(hard); clearTimeout(noSpeech); try{ sess&&sess.abort(); }catch(e){} ok({ok:res,mist:mist,err:er,heard:word.slice(0,p)}); }
+    function flash(l){ if(!slots) return; var c=slots.children[p]; if(!c) return; c.className='osb r'; c.textContent=(l||'?').slice(0,1).toUpperCase(); setTimeout(function(){ if(c&&!c.classList.contains('g')){ c.className='osb'; c.textContent=''; } },800); }
+    function green(){ if(!slots) return; var c=slots.children[p-1]; if(c){ c.className='osb g'; c.textContent=word[p-1].toUpperCase(); } }
+    function take(e){ if(e.length===1){ if(e===word[p]){ p++; green(); } else{ mist++; flash(e); } } else if(word.slice(p).indexOf(e)===0){ var n=e.length; while(n--){ p++; green(); } } else{ mist++; flash(e); } if(p>=word.length) fin(true); }
+    function session(){ if(finished||my!==run) return; var idx=0, stT=null, last=''; try{ sess=new SR(); }catch(e){ fin(false,'x'); return; } sess.lang='en-US'; sess.interimResults=true; sess.continuous=true; sess.maxAlternatives=1;
+      function work(final){ var seq=oSeq(last); var lim=final?seq.length:seq.length-1; while(idx<lim&&!finished){ take(seq[idx]); idx++; }
+        if(!final&&!finished&&idx===seq.length-1){ var e=seq[idx], exp=word[p]; if(e.length===1&&e===exp||e.length>1&&word.slice(p).indexOf(e)===0){ take(e); idx++; } else{ clearTimeout(stT); stT=setTimeout(function(){ if(!finished&&idx===seq.length-1){ take(seq[idx]); idx++; } },450); } } }
+      sess.onresult=function(ev){ clearTimeout(noSpeech); var fins=[], it=''; for(var i=0;i<ev.results.length;i++){ var rr=ev.results[i]; if(rr.isFinal) fins.push(rr[0].transcript); else it+=' '+rr[0].transcript; } last=(fins.join(' ')+' '+it).trim(); hear.textContent='🎙 Say the next letter…'; var allFinal=!it.trim(); work(allFinal); noSpeech=setTimeout(function(){ if(!finished) fin(false,''); },20000); };
+      sess.onerror=function(ev){ if(ev.error==='no-speech'||ev.error==='aborted') return; fin(false,ev.error||'x'); };
+      sess.onend=function(){ if(finished) return; if(my!==run){ fin(false,''); return; } setTimeout(session,150); };
+      try{ sess.start(); }catch(e){ fin(false,'x'); } }
+    rec={abort:function(){ my=-1; fin(false,''); }};
+    hard=setTimeout(function(){ fin(false,''); },120000); noSpeech=setTimeout(function(){ if(!finished) fin(false,''); },20000); session(); }); }
   function score(){ return s.o.r.reduce(function(a,r){return a+(r.sp?1:0)+(r.df?1:0)},0); }
   function drawLog(){ logEl.textContent=''; s.o.r.forEach(function(r,i){ var d=mkEl('div',(r.sp&&r.df)?'ok':''); d.append(document.createTextNode((i+1)+'. '+s.qs[i].q+'  '+(r.sp?'✅':'❌')+' spelling  '+(r.df?'✅':'❌')+' meaning ('+Math.round(r.dp*100)+'%)')); d.appendChild(mkEl('small',null,'🗣 '+(r.hs||'—')+' | '+(r.hd||'—'))); logEl.appendChild(d); }); }
   function ui(){
@@ -4140,15 +4147,15 @@ function renderOral(s){
   var cur={};
   async function answer(){
     if(busy) return; busy=true; var q=s.qs[s.o.r.length], my=++run; try{ TTS&&TTS.cancel(); }catch(e){} mic.classList.add('rec'); hear.textContent='🎙 Listening…'; fb.textContent='';
-    if(ph==='sp'){ var sr=await listenSpell(q.a); if(my!==run) return; mic.classList.remove('rec'); if(sr.err){ busy=false; oMicBad=true; hear.textContent='⚠️ Microphone unavailable here ('+sr.err+'). Open the page in Chrome and allow the microphone.'; return; } if(!sr.heard){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'; return; } record([sr.heard],sr.ok); return; }
+    if(ph==='sp'){ var sr=await listenSpell(q.a); if(my!==run) return; mic.classList.remove('rec'); if(sr.err){ busy=false; oMicBad=true; hear.textContent='⚠️ Microphone unavailable here ('+sr.err+'). Open the page in Chrome and allow the microphone.'; return; } if(!sr.ok&&!sr.mist&&!sr.heard){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'; return; } if(!sr.ok){ busy=false; hear.textContent='Tap the microphone to continue.'; return; } record([sr.heard],sr.mist===0,sr.mist); return; }
     var a=await listen(ph==='sp'?14000:25000,function(x){ if(ph==='sp'){ var L=oLetters(x); if(L&&kbSet){ kbSet(L); hear.textContent='✍️ '+liveTxt(x); return; } } hear.textContent='✍️ '+liveTxt(x); }); if(my!==run){ return; } mic.classList.remove('rec');
     if(a.err){ busy=false; oMicBad=true; hear.textContent='⚠️ Microphone unavailable here ('+a.err+'). Open the page in Chrome and allow the microphone.'; return; }
     if(!a.alts.length){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'; return; }
     record(a.alts);
   }
-  async function record(alts,pre){
+  async function record(alts,pre,mist){
     busy=true; var i=s.o.r.length, q=s.qs[i], my=++run, heard=alts&&alts[0]||'', ok, pct=0;
-    if(ph==='sp'){ ok=pre!==undefined?!!pre:(alts?!!oSpellOK(alts,q.a):false); cur={sp:ok?1:0,hs:heard}; hear.textContent='✍️ '+(alts?oSeq(heard).join(' ').toUpperCase():'—'); fb.textContent=ok?'✅ Correct!':'❌ The word is '+q.q; if(!await sq(ok?[['Correct!',.9,500]]:[['Not quite. The word is',.85,500],[q.q,.7,700],[q.q.split('').join(', '),.6,600]],my)) return; ph='df'; busy=false; ui(); speakQ(); return; }
+    if(ph==='sp'){ ok=pre!==undefined?!!pre:(alts?!!oSpellOK(alts,q.a):false); cur={sp:ok?1:0,hs:heard}; hear.textContent='✍️ '+(alts?oSeq(heard).join(' ').toUpperCase():'—'); fb.textContent=ok?'✅ Correct!':(alts&&mist?'✅ Done · '+mist+' retry':'❌ The word is '+q.q); if(!await sq(ok?[['Correct!',.9,500]]:(alts&&mist?[['Well done!',.9,500]]:[['Not quite. The word is',.85,500],[q.q,.7,700],[q.q.split('').join(', '),.6,600]]),my)) return; ph='df'; busy=false; ui(); speakQ(); return; }
     (alts||[]).forEach(function(x){ pct=Math.max(pct,oDef(x,q.def)); }); ok=pct>=.8; cur.df=ok?1:0; cur.dp=pct; cur.hd=heard; s.o.r.push(cur); cur={}; hsave();
     hear.textContent='🗣 '+(heard||'—')+' · '+Math.round(pct*100)+'%'; fb.textContent=ok?'✅ Great meaning!':'❌ '+q.def; if(!await sq(ok?[['Great meaning!',.9,500]]:[['Almost.',.85,400],[q.def,.8,600]],my)) return; ph='sp'; rc=0; busy=false; ui(); if(s.o.r.length<N) speakQ();
   }
