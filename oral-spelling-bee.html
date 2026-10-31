@@ -1,0 +1,90 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spelling Bee - Oral</title>
+<style>body{margin:0;font-family:system-ui,Arial,sans-serif;background:linear-gradient(#bfe3ff,#d9f5c9);min-height:100vh}#hub{max-width:560px;margin:0 auto;padding:16px}.ttl{color:#22306b;margin:8px 0 14px}.btn{min-height:2.6rem;padding:0 1rem;border-radius:12px;border:2px solid #4f7cff;background:#fff;color:#22306b;font-weight:700;font-size:1rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}.btn.primary{background:#4f7cff;color:#fff}.hint{color:#666}.back{display:none}textarea{box-sizing:border-box}</style></head><body><div id="hub"></div><script>
+function mkEl(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+var hubEl=document.getElementById('hub'),HS={sub:'eng',sec:'ex'},KEY='oralbee',T=function(){return ''},STAGE='gr';
+function studentName(){return 'Ward'} function pOnSubmit(){} function hubShow(){location.reload()}
+var s=null;try{s=JSON.parse(localStorage.getItem('oralbee-s'))}catch(e){}
+if(!s) s={id:'oral-bee',name:'🎤 Spelling Bee (Oral)',oral:1,qs:null,o:{r:[]},submitted:false};
+function hsave(){try{localStorage.setItem('oralbee-s',JSON.stringify(s))}catch(e){}}
+/* ===== Oral Spelling Bee (GR English) ===== */
+var ORAL_W=[["Behave","bɪˈheɪv","verb","To act in a polite, proper, or correct way."],["Bustle","ˈbʌsəl","verb","To move around quickly in a busy and excited manner."],["Delight","dɪˈlaɪt","noun","A feeling of great pleasure or high enjoyment."],["Enormous","ɪˈnɔːrməs","adj.","Extremely large in size, amount, or degree; huge."],["Marvel","ˈmɑːrvəl","verb","To be filled with wonder, surprise, or admiration."],["Reassure","ˌriːəˈʃʊr","verb","To say or do something to remove someone's doubts or fears."],["Shrub","ʃrʌb","noun","A low woody plant smaller than a tree, with several stems."],["Disappear","ˌdɪsəˈpɪr","verb","To pass out of sight or stop existing suddenly."],["Fumble","ˈfʌmbəl","verb","To handle or touch something awkwardly or clumsily."],["Glamorous","ˈɡlæmərəs","adj.","Attractive, exciting, and full of charm or beauty."],["Imagine","ɪˈmædʒɪn","verb","To form a picture or idea of something in your mind."],["Shock","ʃɑːk","noun","A sudden, unexpected, and upsetting surprise or event."],["Site","saɪt","noun","An area or location where something is built or takes place."],["Uncomfortable","ʌnˈkʌmftərbəl","adj.","Causing physical discomfort or feeling uneasy."],["Banished","ˈbænɪʃt","verb / adj.","Sent away or forced to leave a place as an official punishment."],["Wane","weɪn","verb","To become smaller, weaker, or decrease in strength or size."],["Broth","brɔːθ","noun","A thin, flavorful soup made by simmering meat or vegetables."],["Relish","ˈrelɪʃ","verb","To enjoy or appreciate something greatly."],["Synopsis","sɪˈnɑːpsɪs","noun","A brief summary or outline of a story, book, or movie."],["Chores","tʃɔːrz","noun","Small routine daily tasks around the house or school."]];
+var ORAL_L={bee:'b',be:'b',see:'c',sea:'c',dee:'d',gee:'g',jee:'g',aitch:'h',jay:'j',kay:'k',okay:'k',ell:'l',el:'l',em:'m',en:'n',oh:'o',owe:'o',pea:'p',pee:'p',queue:'q',cue:'q',are:'r',ess:'s',tea:'t',tee:'t',you:'u',vee:'v',ex:'x',why:'y',wai:'y',zed:'z',zee:'z',eye:'i',i:'i',ay:'a',eh:'a',eff:'f',double:'w',w:'w'};
+var ORAL_STOP='a an the to of or and in on at is are be it its that this with for by as from into your you one something someone'.split(' ');
+function oNorm(t){ return String(t||'').toLowerCase().replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim(); }
+function oLetters(t){ var ws=oNorm(t).split(' ').filter(Boolean), out='', i=0; for(;i<ws.length;i++){ var w=ws[i]; if(w==='double'&&ws[i+1]==='u'){ out+='w'; i++; continue; } if(w.length===1) out+=w; else if(ORAL_L[w]) out+=ORAL_L[w]; else return null; } return out; }
+function oJoin(t){ var ws=oNorm(t).split(' ').filter(Boolean), out=''; for(var i=0;i<ws.length;i++){ var w=ws[i]; if(w==='double'&&ws[i+1]==='u'){ out+='w'; i++; } else if(w.length===1) out+=w; else if(ORAL_L[w]) out+=ORAL_L[w]; else out+=w; } return out; }
+function oSpellOK(alts,word){ for(var k=0;k<alts.length;k++){ if(oJoin(alts[k])===word) return 'spell'; } for(var i=0;i<alts.length;i++){ var n=oNorm(alts[i]); if(n.replace(/ /g,'')===word) return 'say'; var L=oLetters(alts[i]); if(L&&L===word) return 'spell'; var ws=n.split(' '); if(ws.indexOf(word)>=0) return 'say'; } return ''; }
+function oStem(w){ return w.replace(/(ing|ed|es|s|ly)$/,''); }
+function oDef(ans,ref){ var rw=oNorm(ref).split(' ').filter(function(w){return w&&ORAL_STOP.indexOf(w)<0}).map(oStem), aw=oNorm(ans).split(' ').map(oStem), h=0; rw.forEach(function(w){ if(aw.indexOf(w)>=0) h++; }); return rw.length?h/rw.length:0; }
+(function(){ var st=document.createElement('style'); st.textContent='.ob{background:#fff;border:2px solid #cfe0ff;border-radius:22px;padding:16px;text-align:center;box-shadow:0 6px 18px #2a4bd71f}.obp{height:10px;background:#e7edff;border-radius:9px;overflow:hidden;margin:6px 0 14px}.obp i{display:block;height:100%;background:linear-gradient(90deg,#4f7cff,#7c3aed)}.obs{display:flex;gap:6px;justify-content:center;margin-bottom:10px}.obs span{padding:4px 12px;border-radius:99px;background:#eef2ff;color:#6b74a8;font-weight:700;font-size:.85rem}.obs span.on{background:#4f7cff;color:#fff}.obw{font:800 1.5rem var(--font-d,inherit);margin:6px 0;color:#22306b}.obm{width:96px;height:96px;border-radius:50%;border:0;font-size:2.6rem;background:linear-gradient(135deg,#4f7cff,#7c3aed);color:#fff;box-shadow:0 8px 20px #4f7cff66;cursor:pointer;margin:8px auto;display:block}.obm.rec{background:linear-gradient(135deg,#ef4444,#f97316);box-shadow:0 0 0 8px #ef444433}.obm:disabled{opacity:.5}.obh{min-height:1.6em;color:#555;font-size:.95rem;margin:6px 0}.obr{display:flex;gap:8px;justify-content:center;margin-top:8px}.obf{font:700 1.05rem var(--font-d,inherit);margin:8px 0;min-height:1.4em}.obl{display:grid;gap:6px;margin-top:14px;text-align:left}.obl div{background:#f4f7ff;border-radius:12px;padding:8px 12px;font-size:.92rem}.obl div.ok{background:#e3f7ec}.obl small{display:block;color:#666}'; document.head.appendChild(st); })();
+function oVoice(){ try{ var vs=speechSynthesis.getVoices().filter(function(v){return /^en[-_]US$/i.test(v.lang)}); if(!vs.length) return null; var pr=[/Google US English/i,/Samantha/i,/Aria|Jenny|Ava|Emma|Zira|Guy/i,/Microsoft/i,/Alex|Allison|Victoria/i]; for(var i=0;i<pr.length;i++){ var m=vs.filter(function(v){return pr[i].test(v.name)})[0]; if(m) return m; } return vs[0]; }catch(e){ return null; } }
+try{ speechSynthesis.getVoices(); speechSynthesis.addEventListener('voiceschanged',function(){}); }catch(e){}
+(function(){ var s2=document.createElement('style'); s2.textContent='.okp{margin-top:12px}.oks{font:800 1.8rem monospace;letter-spacing:.15em;min-height:2.2rem;color:#22306b;margin:6px 0;word-break:break-all}.okg{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.okg button{min-height:2.6rem;border-radius:10px;border:1.5px solid #cfe0ff;background:#fff;font-weight:800;font-size:1.05rem;color:#22306b}.okg button.okw{grid-column:span 2;background:#eef2ff}.okg button.hit{background:#fde68a;border-color:#f59e0b;transform:scale(1.12)}.okg button.ok{background:#4f7cff;color:#fff}'; document.head.appendChild(s2); })();
+function renderOral(s){
+  var rc=0, kbSet=null, idleT=null, oMicBad=false, sub=HS.sub, N=s.qs.length, SR=window.SpeechRecognition||window.webkitSpeechRecognition, TTS=window.speechSynthesis, run=0, rec=null;
+  var back=mkEl('button','btn back',T(sub,'back')+' '+T(sub,HS.sec)); back.type='button'; back.addEventListener('click',function(){ stop(); hubShow(sub,HS.sec); });
+  hubEl.append(back,mkEl('h1','ttl',s.name)); var box=mkEl('div','ob'); hubEl.appendChild(box); var logEl=mkEl('div','obl'); hubEl.appendChild(logEl);
+  s.o=s.o||{r:[]}; if(!s.o.r) s.o.r=[]; var ph='sp', busy=false, mic, hear, fb;
+  function stop(){ run++; try{ TTS&&TTS.cancel(); }catch(e){} try{ rec&&rec.abort(); }catch(e){} }
+  function pause(ms){ return new Promise(function(ok){ setTimeout(ok,ms); }); }
+  async function sq(parts,my){ for(var k=0;k<parts.length;k++){ if(my!==run) return false; await say(parts[k][0],parts[k][1]); if(my!==run) return false; await pause(parts[k][2]||600); } return my===run; }
+  function say(t,rate){ return new Promise(function(ok){ if(!TTS){ ok(); return; } try{ TTS.cancel(); var u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=rate||.85; var v=oVoice(); if(v) u.voice=v; u.onend=u.onerror=function(){ ok(); }; TTS.speak(u); }catch(e){ ok(); } }); }
+  function listen(ms,live){ return new Promise(function(ok){ var alts=[], done=false, idle=null, hard; try{ rec=new SR(); }catch(e){ ok({err:'x'}); return; } rec.lang='en-US'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=5;
+    var fins=[], lastIt='';
+    function fin(er){ if(done) return; done=true; clearTimeout(idle); clearTimeout(hard); try{ rec.stop(); }catch(e){} if(fins.length>1) alts.unshift(fins.join(' ')); if(!alts.length&&lastIt) alts.push(lastIt); ok({alts:alts,err:er}); }
+     hard=setTimeout(fin,ms); rec.onresult=function(e){ var it=''; for(var i=e.resultIndex;i<e.results.length;i++){ var r=e.results[i]; if(r.isFinal){ fins.push(r[0].transcript); for(var j=0;j<r.length;j++) alts.push(r[j].transcript); } else it+=r[0].transcript; } lastIt=(fins.join(' ')+' '+it).trim(); if(live) live(lastIt); clearTimeout(idle); idle=setTimeout(fin,2200); };
+    rec.onerror=function(e){ fin(e.error==='no-speech'||e.error==='aborted'?'':(e.error||'x')); }; rec.onend=function(){ fin(''); }; try{ rec.start(); }catch(e){ fin('x'); } }); }
+  function score(){ return s.o.r.reduce(function(a,r){return a+(r.sp?1:0)+(r.df?1:0)},0); }
+  function drawLog(){ logEl.textContent=''; s.o.r.forEach(function(r,i){ var d=mkEl('div',(r.sp&&r.df)?'ok':''); d.append(document.createTextNode((i+1)+'. '+s.qs[i].q+'  '+(r.sp?'✅':'❌')+' spelling  '+(r.df?'✅':'❌')+' meaning ('+Math.round(r.dp*100)+'%)')); d.appendChild(mkEl('small',null,'🗣 '+(r.hs||'—')+' | '+(r.hd||'—'))); logEl.appendChild(d); }); }
+  function ui(){
+    box.textContent=''; var i=s.o.r.length; if(s.submitted||i>=N){ return done(); }
+    var bar=mkEl('div','obp'); var bi=mkEl('i'); bi.style.width=Math.round(i/N*100)+'%'; bar.appendChild(bi);
+    var sp=mkEl('div','obs'); sp.append(mkEl('span',null,'Word '+(i+1)+' / '+N),mkEl('span',ph==='sp'?'on':'','1 · Spelling'),mkEl('span',ph==='df'?'on':'','2 · Meaning'));
+    var q=s.qs[i]; var w=mkEl('div','obw',ph==='sp'?'🔊 Listen, then spell or say the word':'What does “'+q.q+'” mean?');
+    mic=mkEl('button','obm','🎤'); mic.type='button'; mic.setAttribute('aria-label','Speak'); hear=mkEl('div','obh',SR?'Tap the microphone and answer':'⚠️ Voice is not supported here. Open in Chrome.'); fb=mkEl('div','obf');
+    var left=Math.max(0,3-rc), rp=mkEl('button','btn','🔊 Repeat ('+left+')'); rp.type='button'; rp.disabled=ph==='sp'&&left<=0; rp.addEventListener('click',function(){ if(busy||rp.disabled) return; if(ph==='sp'){ rc++; if(rc>=3) hear.textContent='💡 The word is: '+q.q; else hear.textContent='Tap the microphone and answer'; rp.textContent='🔊 Repeat ('+Math.max(0,3-rc)+')'; rp.disabled=rc>=3; } speakQ(); });
+    var sk=mkEl('button','btn','⏭ Skip'); sk.type='button'; sk.addEventListener('click',function(){ if(!busy) record(null); });
+    var row=mkEl('div','obr'); row.append(rp,sk);
+    mic.disabled=false; mic.addEventListener('click',function(){ if(!SR) return; if(oMicBad){ oMicBad=false; ui(); } answer(); }); box.append(bar,sp,w,mic,hear,fb,row); drawLog();
+    kbSet=null; clearTimeout(idleT); if(oMicBad||!SR||ph==='sp'){ var pn=mkEl('div','okp'), buf='', kmap={};
+      if(ph==='sp'){ var shown=mkEl('div','oks','—'); var gr=mkEl('div','okg');
+        function sh(){ shown.textContent=buf?buf.toUpperCase().split('').join(' '):'—'; }
+        kbSet=function(L){ buf=L; sh(); var b=kmap[L.slice(-1)]; if(b){ b.classList.add('hit'); setTimeout(function(){ b.classList.remove('hit'); },350); } };
+        'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function(c){ var k=mkEl('button',null,c.toUpperCase()); k.type='button'; kmap[c]=k; k.addEventListener('click',function(){ if(busy) return; buf+=c; sh(); k.classList.add('hit'); setTimeout(function(){ k.classList.remove('hit'); },250); clearTimeout(idleT); idleT=setTimeout(function(){ if(!busy&&buf) record([buf]); },2500); }); gr.appendChild(k); });
+        var bk=mkEl('button','okw','⌫'); bk.type='button'; bk.addEventListener('click',function(){ buf=buf.slice(0,-1); sh(); });
+        var dn=mkEl('button','okw ok','✔ Done'); dn.type='button'; dn.addEventListener('click',function(){ if(!busy) record([buf]); });
+        gr.append(bk,dn); pn.append(mkEl('div','obh','Say the letters: each one lights up here'),shown,gr); }
+      else if(oMicBad||!SR){ var ta=mkEl('textarea'); ta.rows=2; ta.placeholder='Type the meaning (or use your keyboard microphone)'; ta.style.cssText='width:100%;font-size:1rem;border-radius:12px;padding:8px'; var dn2=mkEl('button','btn primary','✔ Done'); dn2.type='button'; dn2.addEventListener('click',function(){ if(!busy) record([ta.value]); }); pn.append(ta,dn2); }
+      box.appendChild(pn); }
+  }
+  function speakQ(){ var q=s.qs[s.o.r.length], my=++run, pos=q.pos.replace(/\./g,'').replace('/','or');
+    var parts=ph==='sp'?[['Please spell the word, or say it.',.85,800],[q.q,.7,1100],[q.q,.7,900],['It is a '+pos+'.',.85,500]]:[['What does '+q.q+' mean?',.85,500]];
+    return sq(parts,my).then(function(ok){ if(ok&&my===run&&!busy&&!oMicBad) answer(); }); }
+  function liveTxt(x){ if(ph==='sp'){ var L=oLetters(x); if(L) return L.toUpperCase().split('').join(' '); } return x; }
+  var cur={};
+  async function answer(){
+    if(busy) return; busy=true; var q=s.qs[s.o.r.length], my=++run; try{ TTS&&TTS.cancel(); }catch(e){} mic.classList.add('rec'); hear.textContent='🎙 Listening…'; fb.textContent='';
+    var a=await listen(ph==='sp'?14000:25000,function(x){ if(ph==='sp'){ var L=oLetters(x); if(L&&kbSet){ kbSet(L); hear.textContent='✍️ '+liveTxt(x); return; } } hear.textContent='✍️ '+liveTxt(x); }); if(my!==run){ return; } mic.classList.remove('rec');
+    if(a.err){ busy=false; oMicBad=true; ui(); hear.textContent='⚠️ Microphone unavailable here ('+a.err+'). Use the keys below.'; return; }
+    if(!a.alts.length){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'; return; }
+    record(a.alts);
+  }
+  async function record(alts){
+    busy=true; var i=s.o.r.length, q=s.qs[i], my=++run, heard=alts&&alts[0]||'', ok, pct=0;
+    if(ph==='sp'){ ok=alts?!!oSpellOK(alts,q.a):false; cur={sp:ok?1:0,hs:heard}; hear.textContent='✍️ '+(alts?liveTxt(heard):'—'); fb.textContent=ok?'✅ Correct!':'❌ The word is '+q.q; if(!await sq(ok?[['Correct!',.9,500]]:[['Not quite. The word is',.85,500],[q.q,.7,700],[q.q.split('').join(', '),.6,600]],my)) return; ph='df'; busy=false; ui(); speakQ(); return; }
+    (alts||[]).forEach(function(x){ pct=Math.max(pct,oDef(x,q.def)); }); ok=pct>=.8; cur.df=ok?1:0; cur.dp=pct; cur.hd=heard; s.o.r.push(cur); cur={}; hsave();
+    hear.textContent='🗣 '+(heard||'—')+' · '+Math.round(pct*100)+'%'; fb.textContent=ok?'✅ Great meaning!':'❌ '+q.def; if(!await sq(ok?[['Great meaning!',.9,500]]:[['Almost.',.85,400],[q.def,.8,600]],my)) return; ph='sp'; rc=0; busy=false; ui(); if(s.o.r.length<N) speakQ();
+  }
+  function done(){
+    if(!s.submitted){ var ok0=score(); s.marks=s.o.r.map(function(r){return r.sp&&r.df?1:0}); s.submitted=true; s.student=(typeof studentName==='function'?studentName():'')||'Ward'; s.ok=Math.round(ok0/2); s.oralScore=ok0; hsave(); try{ pOnSubmit(sub,s,s.ok); }catch(e){} }
+    var ok=s.oralScore||0; box.textContent=''; box.append(mkEl('div','obw','🏆 '+ok+' / '+(N*2)),mkEl('div','obf',Math.round(ok/(N*2)*100)+'%'));
+    var again=mkEl('button','btn','↺ Try again'); again.type='button'; again.addEventListener('click',function(){ s.submitted=false; s.o={r:[]}; s.marks=null; s.awarded=0; hsave(); hubShow(sub,HS.sec,s.id); });
+    var wa=mkEl('a','btn primary','Send result via WhatsApp'); wa.target='_blank'; wa.rel='noopener'; wa.href='https://wa.me/966564542003?text='+encodeURIComponent('TCIS Grade 3 – English · '+s.name+'\nStudent: '+(s.student||'')+'\nScore: '+ok+' / '+(N*2)+'\n'+s.o.r.map(function(r,i){return (i+1)+'. '+s.qs[i].q+' spelling '+(r.sp?'✓':'✕')+' meaning '+(r.df?'✓':'✕')}).join('\n'));
+    var row=mkEl('div','obr'); row.append(again,wa); box.appendChild(row); drawLog();
+  }
+  ui(); if(!s.submitted&&s.o.r.length<N){ var b0=mkEl('button','btn primary','▶ Start'); b0.type='button'; b0.addEventListener('click',function(){ b0.remove(); var go=function(){ speakQ(); }; try{ navigator.mediaDevices.getUserMedia({audio:true}).then(function(m){ m.getTracks().forEach(function(x){x.stop()}); go(); },go); }catch(e){ go(); } }); box.insertBefore(b0,box.children[3]); }
+}
+
+s.qs=ORAL_W.map(function(w){return {q:w[0],a:w[0].toLowerCase(),ph:w[1],pos:w[2],def:w[3]}});
+renderOral(s);
+</script></body></html>
