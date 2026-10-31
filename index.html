@@ -4170,7 +4170,7 @@ function renderOral(s){
     var wa=mkEl('a','btn primary','Send result via WhatsApp'); wa.target='_blank'; wa.rel='noopener'; wa.href='https://wa.me/966564542003?text='+encodeURIComponent('TCIS Grade 3 – English · '+s.name+'\nStudent: '+(s.student||'')+'\nScore: '+ok+' / '+(N*2)+'\n'+s.o.r.map(function(r,i){return (i+1)+'. '+s.qs[i].q+' spelling '+(r.sp?'✓':'✕')+' meaning '+(r.df?'✓':'✕')}).join('\n'));
     var row=mkEl('div','obr'); row.append(again,wa); box.appendChild(row); drawLog();
   }
-  ui(); if(!s.submitted&&s.o.r.length<N){ var b0=mkEl('button','btn primary','▶ Start'); b0.type='button'; b0.addEventListener('click',function(){ b0.remove(); var go=function(){ speakQ(); }; try{ navigator.mediaDevices.getUserMedia({audio:true}).then(function(m){ m.getTracks().forEach(function(x){x.stop()}); go(); },go); }catch(e){ go(); } }); box.insertBefore(b0,box.children[3]); }
+  ui(); if(!s.submitted&&s.o.r.length<N) setTimeout(function(){ speakQ(); },300);
 }
 var _renderSheet0=renderSheet; renderSheet=function(){ var s=curSheet(); if(s&&s.oral) return renderOral(s); return _renderSheet0(); };
 
@@ -4427,7 +4427,7 @@ var h=(location.hash||'').replace('#','');
 var start='math'; ['eng','wri','ar','sci','comp','eng2'].forEach(function(k){ if(h==='p-'+k) start=k; }); if(h==='english') start='eng';
 if(!h){ try{ var st=localStorage.getItem(KEY+'-tab'); if(P[st]) start=st; }catch(e){} }
 if(h&&h.indexOf('p-')===0){ setStage('gr'); show(start); }
-else if(!STAGE) homeShow();
+else if(true) homeShow();
 else{
   var vw=null; try{ vw=JSON.parse(localStorage.getItem(KEY+'-view')||'null'); }catch(e){}
   if(vw&&vw.home) homeShow();
