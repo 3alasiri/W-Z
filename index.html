@@ -4135,8 +4135,8 @@ function renderOral(s){
     var sp=mkEl('div','obs'); sp.append(mkEl('span',null,'Word '+(i+1)+' / '+N),mkEl('span',ph==='sp'?'on':'','1 · Spelling'),mkEl('span',ph==='df'?'on':'','2 · Meaning'));
     var q=s.qs[i]; var w=mkEl('div','obw',ph==='sp'?'🔊 Listen, then spell or say the word':'What does “'+q.q+'” mean?');
     mic=mkEl('button','obm','🎤'); mic.type='button'; mic.setAttribute('aria-label','Speak'); hear=mkEl('div','obh',SR?'Tap the microphone and answer':'⚠️ Voice is not supported here. Open in Chrome.'); fb=mkEl('div','obf');
-    var left=Math.max(0,3-rc), rp=mkEl('button','btn','🔊 Repeat'); rp.type='button'; rp.disabled=false; rp.addEventListener('click',function(){ if(rp.disabled) return; stop(); busy=false; if(ph==='sp') rc++; ui(); if(ph==='sp'&&rc>=3) hear.textContent='💡 The word is: '+q.q; speakQ(); });
-    var sk=mkEl('button','btn','⏭ Skip'); sk.type='button'; sk.addEventListener('click',function(){ stop(); busy=false; record(null); });
+    var left=Math.max(0,3-rc), rp=mkEl('button','btn','🔊 Repeat'); rp.type='button'; rp.disabled=false; rp.addEventListener('click',function(){ if(rp.disabled) return; stop(); busy=false; if(ph==='sp') rc++; ui(); if(ph==='sp'&&rc>=3) hear.textContent='💡 The word is: '+q.q; speakQ(true); });
+    var sk=mkEl('button','btn','⏭ Next'); sk.type='button'; sk.addEventListener('click',function(){ stop(); busy=false; s.o.r.push({sp:0,df:0,dp:0,hs:'—',hd:'—'}); cur={}; ph='sp'; rc=0; hsave(); ui(); if(s.o.r.length<N) speakQ(); });
     var sp2=mkEl('button','btn','⏹ Stop'); sp2.type='button'; sp2.addEventListener('click',function(){ stop(); busy=false; mic.classList.remove('rec'); hear.textContent='Stopped. Tap the microphone or Repeat.'; });
     var row=mkEl('div','obr'); var rs=mkEl('button','btn','↺ Restart word'); rs.type='button'; rs.addEventListener('click',function(){ stop(); busy=false; ph='sp'; cur={}; rc=0; ui(); speakQ(); });
     var pv=mkEl('button','btn','◀ Previous'); pv.type='button'; pv.disabled=!s.o.r.length; pv.addEventListener('click',function(){ if(!s.o.r.length) return; stop(); busy=false; s.o.r.pop(); cur={}; ph='sp'; rc=0; hsave(); ui(); speakQ(); });
@@ -4144,8 +4144,8 @@ function renderOral(s){
     mic.disabled=false; mic.addEventListener('click',function(){ if(!SR) return; stop(); busy=false; answer(); }); box.append(bar,sp,w,mic,hear,fb,row); drawLog();
     slots=null; if(ph==='sp'){ slots=mkEl('div','osl'); for(var z=0;z<q.a.length;z++) slots.appendChild(mkEl('span','osb','')); box.insertBefore(slots,hear); }
   }
-  function speakQ(){ var q=s.qs[s.o.r.length], my=++run, pos=q.pos.replace(/\./g,'').replace('/','or');
-    var parts=ph==='sp'?[[q.q,.85,1000],[q.q,.55,500]]:[['What does '+q.q+' mean?',.85,500]];
+  function speakQ(shortOnly){ var q=s.qs[s.o.r.length], my=++run, pos=q.pos.replace(/\./g,'').replace('/','or');
+    var parts=ph==='sp'?(shortOnly?[[q.q,.85,1000],[q.q,.55,500]]:[['Listen, then spell or say the word.',.9,800],[q.q,.85,1000],[q.q,.55,500]]):[['What does '+q.q+' mean?',.85,500]];
     return sq(parts,my).then(function(ok){ if(ok&&my===run&&!busy&&!oMicBad) answer(); }); }
   function liveTxt(x){ if(ph==='sp'){ var L=oLetters(x); if(L) return L.toUpperCase().split('').join(' '); } return x; }
   var cur={};
