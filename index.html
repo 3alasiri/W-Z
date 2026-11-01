@@ -4106,6 +4106,7 @@ function oSim(a,b){ if(a===b) return 1; var m=a.length,n=b.length; if(!m||!n) re
 var ORAL_N={a:['ay','eh'],b:['bee'],c:['see','sea'],d:['dee'],e:['ee'],f:['eff'],g:['gee','jee'],h:['aitch'],i:['eye'],j:['jay'],k:['kay'],l:['el','ell'],m:['em'],n:['en'],o:['oh'],p:['pee'],q:['cue','queue'],r:['are'],s:['ess'],t:['tee','tea'],u:['you'],v:['vee'],w:['doubleu'],x:['ex'],y:['why'],z:['zee','zed']};
 function oAcc(e,word,p){ var rest=word.slice(p), L=word[p]; if(e.length===1) return e===L?{n:1}:null; if(rest.indexOf(e)===0) return {n:e.length}; if(e.length>=3&&oSim(e,rest)>=.8) return {n:rest.length}; var nm=ORAL_N[L]||[]; for(var i=0;i<nm.length;i++){ if(oSim(e,nm[i])>=.8) return {n:1}; } return null; }
 function oAlign(H,w){ var m=H.length,n=w.length,d=[],i,j; for(i=0;i<=m;i++){ d[i]=[]; for(j=0;j<=n;j++) d[i][j]=i===0?j:j===0?i:0; } for(i=1;i<=m;i++) for(j=1;j<=n;j++) d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(H[i-1]===w[j-1]?0:1)); var out=[]; i=m; j=n; while(i>0||j>0){ if(i>0&&j>0&&d[i][j]===d[i-1][j-1]+(H[i-1]===w[j-1]?0:1)){ out.unshift({c:H[i-1],ok:H[i-1]===w[j-1]}); i--; j--; } else if(i>0&&d[i][j]===d[i-1][j]+1){ out.unshift({c:H[i-1],ok:false}); i--; } else{ out.unshift({c:'_',ok:false}); j--; } } return out; }
+function oHint(){ return /^((?!chrome|crios|android|edg).)*safari/i.test(navigator.userAgent)?' Tip: Safari has limited voice recognition. Open this page in Google Chrome.':''; }
 function renderOral(s){
   var slots=null, rc=0, kbSet=null, idleT=null, oMicBad=false, sub=HS.sub, N=s.qs.length, SR=window.SpeechRecognition||window.webkitSpeechRecognition, TTS=window.speechSynthesis, run=0, rec=null;
   var view='study';
@@ -4167,10 +4168,10 @@ function renderOral(s){
   var cur={};
   async function answer(){
     if(busy) return; busy=true; var q=s.qs[s.o.r.length], my=++run; try{ TTS&&TTS.cancel(); }catch(e){} mic.classList.add('rec'); hear.textContent='🎙 Listening…'; fb.textContent='';
-    if(ph==='sp'){ var sr=await listenSpell(q.a); if(my!==run) return; mic.classList.remove('rec'); if(sr.err){ busy=false; oMicBad=true; hear.textContent='⚠️ Microphone unavailable here ('+sr.err+'). Open the page in Chrome and allow the microphone.'; return; } if(!sr.ok&&!sr.mist&&!sr.heard){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'; return; } if(!sr.ok){ busy=false; hear.textContent='Tap the microphone to continue.'; return; } record([sr.heard],sr.mist===0,sr.mist); return; }
+    if(ph==='sp'){ var sr=await listenSpell(q.a); if(my!==run) return; mic.classList.remove('rec'); if(sr.err){ busy=false; oMicBad=true; hear.textContent='⚠️ Microphone unavailable here ('+sr.err+'). Allow the microphone for this site.'+oHint(); return; } if(!sr.ok&&!sr.mist&&!sr.heard){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'+oHint(); return; } if(!sr.ok){ busy=false; hear.textContent='Tap the microphone to continue.'; return; } record([sr.heard],sr.mist===0,sr.mist); return; }
     var a=await listen(ph==='sp'?14000:25000,function(x){ if(ph==='sp'){ var L=oLetters(x); if(L&&kbSet){ kbSet(L); hear.textContent='✍️ '+liveTxt(x); return; } } hear.textContent='✍️ '+liveTxt(x); }); if(my!==run){ return; } mic.classList.remove('rec');
-    if(a.err){ busy=false; oMicBad=true; hear.textContent='⚠️ Microphone unavailable here ('+a.err+'). Open the page in Chrome and allow the microphone.'; return; }
-    if(!a.alts.length){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'; return; }
+    if(a.err){ busy=false; oMicBad=true; hear.textContent='⚠️ Microphone unavailable here ('+a.err+'). Allow the microphone for this site.'+oHint(); return; }
+    if(!a.alts.length){ busy=false; hear.textContent='I did not hear you. Tap the microphone and try again.'+oHint(); return; }
     record(a.alts);
   }
   async function record(alts,pre,mist){
@@ -4229,7 +4230,7 @@ function renderChat(s){
       function fin(){ if(finished) return; finished=true; clearTimeout(idle); clearTimeout(hard); try{ rec.stop(); }catch(e){} if(live){ live.remove(); live=null; } ok(my===run?last.trim():''); }
       var hard=setTimeout(fin,30000); var noSp=setTimeout(fin,9000);
       rec.onresult=function(ev){ clearTimeout(noSp); var f=[],it=''; for(var i=0;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal) f.push(r[0].transcript); else it+=' '+r[0].transcript; } last=(f.join(' ')+' '+it).trim(); if(!live) live=add('me','', 'live'); live.textContent=last; log.scrollTop=log.scrollHeight; clearTimeout(idle); idle=setTimeout(fin,2000); };
-      rec.onerror=function(e){ if(e.error==='no-speech'||e.error==='aborted') return; status.textContent='⚠️ Microphone unavailable ('+(e.error||'error')+'). You can type instead.'; hands=false; mic.classList.remove('rec'); fin(); };
+      rec.onerror=function(e){ if(e.error==='no-speech'||e.error==='aborted') return; status.textContent='⚠️ Microphone unavailable ('+(e.error||'error')+'). You can type instead.'+oHint(); hands=false; mic.classList.remove('rec'); fin(); };
       rec.onend=function(){ fin(); };
       try{ rec.start(); }catch(e){ fin(); } }); }
   async function ask(){
@@ -4248,7 +4249,7 @@ function renderChat(s){
     think.remove(); busy=false; if(!reply) reply="Sorry, can you say that again?"; s.msgs.push({r:'b',t:reply}); s.msgs=s.msgs.slice(-60); hsave(); add('bot',reply); status.textContent='';
     if(my!==run) return; await speak(reply); loop();
   }
-  async function loop(){ if(!hands||busy||speaking) return; var my=run; mic.classList.add('rec'); status.textContent='🎙 Listening…'; var t=await listen(); if(my!==run||!hands) return; mic.classList.remove('rec'); if(t){ status.textContent=''; send(t); } else if(hands){ status.textContent='I did not hear you. Tap the microphone to try again.'; hands=false; } }
+  async function loop(){ if(!hands||busy||speaking) return; var my=run; mic.classList.add('rec'); status.textContent='🎙 Listening…'; var t=await listen(); if(my!==run||!hands) return; mic.classList.remove('rec'); if(t){ status.textContent=''; send(t); } else if(hands){ status.textContent='I did not hear you. Tap the microphone to try again.'+oHint(); hands=false; } }
   mic.addEventListener('click',function(){ if(hands){ stopAll(); status.textContent=''; return; } if(!SR){ status.textContent='⚠️ Voice input is not supported here. Please type, or open in Chrome.'; return; } try{ TTS&&TTS.cancel(); }catch(e){} run++; hands=true; loop(); });
   snd.addEventListener('click',function(){ run++; send(inp.value); });
   inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ run++; send(inp.value); } });
