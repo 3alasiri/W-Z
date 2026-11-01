@@ -4236,12 +4236,15 @@ function renderChat(s){
     var arr=[{role:'user',content:SYS+'\n\nThe conversation starts now.'},{role:'assistant',content:GREET}];
     s.msgs.slice(-24).forEach(function(m){ arr.push({role:m.r==='b'?'assistant':'user',content:m.t}); });
     var sample=null; try{ sample=(typeof claude!=='undefined'&&claude.use)?await claude.use('sample'):null; }catch(e){ sample=null; }
-    if(!sample) throw {code:'none'};
-    var out=await sample(arr,{modelTier:'quick',cache:false}); return (out&&out.text||'').replace(/[*#_`]/g,'').trim();
+    if(sample){ var out=await sample(arr,{modelTier:'quick',cache:false}); return (out&&out.text||'').replace(/[*#_`]/g,'').trim(); }
+    var wu=''; try{ wu=localStorage.getItem('wz-chat-worker')||''; }catch(e){} if(!wu) wu=window.CHAT_WORKER||''; if(!wu) throw {code:'none'};
+    var hist=arr.slice(2).map(function(x){ return {role:x.role,content:x.content}; });
+    var rs=await fetch(wu,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:hist})}); if(!rs.ok) throw {code:rs.status===429?'rate_limited':'http'}; var j=await rs.json(); return (j.text||'').replace(/[*#_`]/g,'').trim();
   }
+  function setup(){ if(box.querySelector('.cbsu')) return; var r=mkEl('div','cbr cbsu'), u=document.createElement('input'); u.type='url'; u.placeholder='https://your-worker.workers.dev'; var b=mkEl('button','btn','Save'); b.type='button'; b.addEventListener('click',function(){ var v=u.value.trim(); if(!/^https:\/\//.test(v)) return; try{ localStorage.setItem('wz-chat-worker',v); }catch(e){} r.remove(); status.textContent='✓ Saved. Send your message again.'; }); r.append(u,b); box.appendChild(r); }
   async function send(txt){
     txt=(txt||'').trim(); if(!txt||busy) return; busy=true; var my=run; inp.value=''; s.msgs.push({r:'u',t:txt}); hsave(); add('me',txt); status.textContent='Ms. Ward is thinking…'; var think=add('bot','…','live');
-    var reply=''; try{ reply=await ask(); }catch(e){ var c=e&&e.code; think.remove(); busy=false; status.textContent=c==='none'||c==='not_granted'||c==='sampling_disabled'?'⚠️ The AI chat works only inside Claude, and it needs your permission when it asks.':c==='rate_limited'?'⚠️ Too many messages. Please wait a moment.':'⚠️ Could not get an answer. Try again.'; hands=false; mic.classList.remove('rec'); return; }
+    var reply=''; try{ reply=await ask(); }catch(e){ var c=e&&e.code; think.remove(); busy=false; if(c==='none'){ setup(); } status.textContent=c==='none'||c==='not_granted'||c==='sampling_disabled'?'⚠️ AI chat is not connected yet. Paste the chat server link below (ask your parent).':c==='rate_limited'?'⚠️ Too many messages. Please wait a moment.':'⚠️ Could not get an answer. Try again.'; hands=false; mic.classList.remove('rec'); return; }
     think.remove(); busy=false; if(!reply) reply="Sorry, can you say that again?"; s.msgs.push({r:'b',t:reply}); s.msgs=s.msgs.slice(-60); hsave(); add('bot',reply); status.textContent='';
     if(my!==run) return; await speak(reply); loop();
   }
