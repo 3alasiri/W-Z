@@ -4200,6 +4200,62 @@ function renderOral(s){
 }
 var _renderSheet0=renderSheet; renderSheet=function(){ var s=curSheet(); if(s&&s.oral) return renderOral(s); return _renderSheet0(); };
 
+/* ===== AI English conversation (GR English) ===== */
+function pSeedChat(){
+  if(typeof STAGE==='undefined'||STAGE!=='gr'||HD._chat) return; HD._chat=1;
+  var d=hd('eng'); d.ex.unshift({id:'ai-chat',kind:'ex',name:'💬 English Conversation (AI)',chat:1,qs:[],ans:{},submitted:false,ok:0,due:'',msgs:[]});
+  hsave();
+}
+var _pSeedB1=pSeedB; pSeedB=function(){ _pSeedB1(); try{ pSeedChat(); }catch(e){} };
+try{ pSeedChat(); }catch(e){}
+(function(){ var st=document.createElement('style'); st.textContent='.cb{background:#fff;border:2px solid #cfe0ff;border-radius:22px;padding:14px;box-shadow:0 6px 18px #2a4bd71f}.cbl{height:min(48vh,420px);overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px;scroll-behavior:smooth}.cbm{max-width:86%;padding:9px 13px;border-radius:16px;font-size:1rem;line-height:1.45;white-space:pre-wrap;word-break:break-word}.cbm.bot{align-self:flex-start;background:#eef2ff;color:#22306b;border-bottom-left-radius:4px}.cbm.me{align-self:flex-end;background:#4f7cff;color:#fff;border-bottom-right-radius:4px}.cbm.live{opacity:.7;font-style:italic}.cbr{display:flex;gap:8px;margin-top:10px;align-items:center}.cbr input{flex:1;min-height:2.8rem;border:2px solid #cfe0ff;border-radius:14px;padding:0 12px;font-size:1rem;min-width:0}.cbmic{width:3.2rem;height:3.2rem;border-radius:50%;border:0;font-size:1.5rem;background:linear-gradient(135deg,#4f7cff,#7c3aed);color:#fff;flex:none}.cbmic.rec{background:linear-gradient(135deg,#ef4444,#f97316)}.cbt{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.cbs{color:#6b74a8;font-size:.85rem;margin-top:6px;min-height:1.2em}'; document.head.appendChild(st); })();
+function renderChat(s){
+  var sub=HS.sub, SR=window.SpeechRecognition||window.webkitSpeechRecognition, TTS=window.speechSynthesis, run=0, rec=null, hands=false, busy=false, speaking=false, voiceOn=true;
+  s.msgs=s.msgs||[];
+  var GREET="Hi! I'm Ms. Ward. I love chatting! What would you like to talk about today?";
+  var SYS="You are Ms. Ward, a warm, friendly English conversation partner for a Grade 3 student (8-9 years old) at a school in Saudi Arabia who is learning English. Chat naturally about ANY topic the student brings up, just like a real person: react to what they say, share a little about yourself, ask one short follow-up question, and keep the talk going. Use simple words and short sentences (1-3 sentences, under 40 words). If the student makes a grammar mistake, gently repeat the correct sentence inside your reply without scolding. If they write in Arabic, answer in simple English and give the Arabic meaning of one key word in brackets. Stay kind, safe and age-appropriate; never ask for personal details like address, phone or school name; if the topic is unsafe, change the subject gently. Reply with plain text only: no markdown, no lists, no emojis.";
+  var back=mkEl('button','btn back',T(sub,'back')+' '+T(sub,HS.sec)); back.type='button'; back.addEventListener('click',function(){ stopAll(); hubShow(sub,HS.sec); });
+  hubEl.append(back,mkEl('h1','ttl',s.name)); var box=mkEl('div','cb'); hubEl.appendChild(box);
+  var log=mkEl('div','cbl'), status=mkEl('div','cbs'), inp=document.createElement('input'), mic=mkEl('button','cbmic','🎤'), snd=mkEl('button','btn primary','Send');
+  inp.type='text'; inp.placeholder='Type here, or tap the microphone…'; inp.autocomplete='off'; mic.type='button'; snd.type='button'; mic.setAttribute('aria-label','Talk');
+  var row=mkEl('div','cbr'); row.append(mic,inp,snd);
+  var tools=mkEl('div','cbt'); var vb=mkEl('button','btn','🔊 Voice: on'); vb.type='button'; var nb=mkEl('button','btn','↺ New chat'); nb.type='button'; var sb=mkEl('button','btn','⏹ Stop talking'); sb.type='button'; tools.append(vb,sb,nb);
+  box.append(log,status,row,tools);
+  function add(role,txt,cls){ var m=mkEl('div','cbm '+(role==='bot'?'bot':'me')+(cls?' '+cls:''),txt); log.appendChild(m); log.scrollTop=log.scrollHeight; return m; }
+  function draw(){ log.textContent=''; add('bot',GREET); s.msgs.forEach(function(m){ add(m.r==='b'?'bot':'me',m.t); }); }
+  function stopAll(){ run++; hands=false; mic.classList.remove('rec'); try{ TTS&&TTS.cancel(); }catch(e){} try{ rec&&rec.abort(); }catch(e){} speaking=false; }
+  function speak(t){ return new Promise(function(ok){ if(!voiceOn||!TTS){ ok(); return; } var done=false, fin=function(){ if(!done){ done=true; speaking=false; ok(); } }; try{ var was=TTS.speaking||TTS.pending; if(was) TTS.cancel(); var u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=.78; u.pitch=1.12; var v=oVoice(); if(v) u.voice=v; window.__chatU=u; u.onend=fin; u.onerror=fin; speaking=true; var go=function(){ try{ TTS.resume(); TTS.speak(u); }catch(e){ fin(); } }; if(was) setTimeout(go,110); else go(); setTimeout(fin,Math.max(8000,t.length*200)); }catch(e){ fin(); } }); }
+  function listen(){ return new Promise(function(ok){ if(!SR){ ok(''); return; } var my=run, last='', idle=null, live=null, finished=false; try{ rec=new SR(); }catch(e){ ok(''); return; } rec.lang='en-US'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
+      function fin(){ if(finished) return; finished=true; clearTimeout(idle); clearTimeout(hard); try{ rec.stop(); }catch(e){} if(live){ live.remove(); live=null; } ok(my===run?last.trim():''); }
+      var hard=setTimeout(fin,30000); var noSp=setTimeout(fin,9000);
+      rec.onresult=function(ev){ clearTimeout(noSp); var f=[],it=''; for(var i=0;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal) f.push(r[0].transcript); else it+=' '+r[0].transcript; } last=(f.join(' ')+' '+it).trim(); if(!live) live=add('me','', 'live'); live.textContent=last; log.scrollTop=log.scrollHeight; clearTimeout(idle); idle=setTimeout(fin,2000); };
+      rec.onerror=function(e){ if(e.error==='no-speech'||e.error==='aborted') return; status.textContent='⚠️ Microphone unavailable ('+(e.error||'error')+'). You can type instead.'; hands=false; mic.classList.remove('rec'); fin(); };
+      rec.onend=function(){ fin(); };
+      try{ rec.start(); }catch(e){ fin(); } }); }
+  async function ask(){
+    var arr=[{role:'user',content:SYS+'\n\nThe conversation starts now.'},{role:'assistant',content:GREET}];
+    s.msgs.slice(-24).forEach(function(m){ arr.push({role:m.r==='b'?'assistant':'user',content:m.t}); });
+    var sample=null; try{ sample=(typeof claude!=='undefined'&&claude.use)?await claude.use('sample'):null; }catch(e){ sample=null; }
+    if(!sample) throw {code:'none'};
+    var out=await sample(arr,{modelTier:'quick',cache:false}); return (out&&out.text||'').replace(/[*#_`]/g,'').trim();
+  }
+  async function send(txt){
+    txt=(txt||'').trim(); if(!txt||busy) return; busy=true; var my=run; inp.value=''; s.msgs.push({r:'u',t:txt}); hsave(); add('me',txt); status.textContent='Ms. Ward is thinking…'; var think=add('bot','…','live');
+    var reply=''; try{ reply=await ask(); }catch(e){ var c=e&&e.code; think.remove(); busy=false; status.textContent=c==='none'||c==='not_granted'||c==='sampling_disabled'?'⚠️ The AI chat works only inside Claude, and it needs your permission when it asks.':c==='rate_limited'?'⚠️ Too many messages. Please wait a moment.':'⚠️ Could not get an answer. Try again.'; hands=false; mic.classList.remove('rec'); return; }
+    think.remove(); busy=false; if(!reply) reply="Sorry, can you say that again?"; s.msgs.push({r:'b',t:reply}); s.msgs=s.msgs.slice(-60); hsave(); add('bot',reply); status.textContent='';
+    if(my!==run) return; await speak(reply); loop();
+  }
+  async function loop(){ if(!hands||busy||speaking) return; var my=run; mic.classList.add('rec'); status.textContent='🎙 Listening…'; var t=await listen(); if(my!==run||!hands) return; mic.classList.remove('rec'); if(t){ status.textContent=''; send(t); } else if(hands){ status.textContent='I did not hear you. Tap the microphone to try again.'; hands=false; } }
+  mic.addEventListener('click',function(){ if(hands){ stopAll(); status.textContent=''; return; } if(!SR){ status.textContent='⚠️ Voice input is not supported here. Please type, or open in Chrome.'; return; } try{ TTS&&TTS.cancel(); }catch(e){} run++; hands=true; loop(); });
+  snd.addEventListener('click',function(){ run++; send(inp.value); });
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ run++; send(inp.value); } });
+  vb.addEventListener('click',function(){ voiceOn=!voiceOn; vb.textContent='🔊 Voice: '+(voiceOn?'on':'off'); if(!voiceOn){ try{ TTS&&TTS.cancel(); }catch(e){} } });
+  sb.addEventListener('click',function(){ try{ TTS&&TTS.cancel(); }catch(e){} speaking=false; });
+  nb.addEventListener('click',function(){ stopAll(); s.msgs=[]; hsave(); draw(); status.textContent=''; speak(GREET); });
+  draw(); setTimeout(function(){ if(!s.msgs.length) speak(GREET); },300);
+}
+var _rs2=renderSheet; renderSheet=function(){ var s=curSheet(); if(s&&s.chat) return renderChat(s); return _rs2(); };
+
 function qzOpen(sub){
   [].slice.call(document.querySelectorAll('.page')).forEach(function(pg){pg.hidden=true});
   cur=sub; hubEl.hidden=true; homeEl.hidden=true; welcomeEl.hidden=true; tabsNav.hidden=true; bar.hidden=true; kgEl.hidden=true; qzEl.hidden=false;
