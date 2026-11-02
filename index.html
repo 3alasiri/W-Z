@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#4f7cff"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ward & Zahr"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>منصة ورد وزهر | Ward &amp; Zahr</title><meta name="description" content="منصة تعليمية للأطفال: الروضة والصف الثالث"><meta property="og:type" content="website"><meta property="og:site_name" content="Ward &amp; Zahr"><meta property="og:title" content="منصة ورد وزهر | Ward &amp; Zahr"><meta property="og:description" content="منصة تعليمية للأطفال: الروضة والصف الثالث"><meta property="og:url" content="https://3alasiri.github.io/W-Z/"><meta property="og:image" content="https://3alasiri.github.io/W-Z/og-image.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://3alasiri.github.io/W-Z/og-image.jpg"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><style>html,body{margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}body{min-height:100vh;min-height:100dvh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}</style></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#4f7cff"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ward & Zahr"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Ward and Zahr Platform</title>
 <style>html:not(.wz-ready) body{visibility:hidden}</style><script>setTimeout(function(){document.documentElement.classList.add('wz-ready')},4000)</script>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -4204,6 +4204,19 @@ function renderOral(s){
 }
 var _renderSheet0=renderSheet; renderSheet=function(){ var s=curSheet(); if(s&&s.oral) return renderOral(s); return _renderSheet0(); };
 
+/* ===== Multiplication tables 1-10 (GR Math) ===== */
+function pSeedMult(){
+  if(typeof STAGE==='undefined'||STAGE!=='gr'||HD._mult) return; HD._mult=1;
+  var d=hd('math'), list=[];
+  for(var n=1;n<=10;n++){ var qs=[]; for(var k=1;k<=10;k++) qs.push({q:n+' × '+k+' = ___',a:String(n*k)}); list.push({id:'mt-'+n,kind:'ex',name:'✖️ Times Table × '+n,qs:qs,ans:{},submitted:false,ok:0,due:'',mult:1}); }
+  var seed=7, mix=[]; function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
+  for(var i=0;i<20;i++){ var a=1+Math.floor(rnd()*10), b=1+Math.floor(rnd()*10); mix.push({q:a+' × '+b+' = ___',a:String(a*b)}); }
+  list.push({id:'mt-mix',kind:'ex',name:'✖️ Times Tables Mix (1–10)',qs:mix,ans:{},submitted:false,ok:0,due:'',mult:1});
+  d.ex=d.ex.concat(list); hsave();
+}
+var _pSeedB3=pSeedB; pSeedB=function(){ _pSeedB3(); try{ pSeedMult(); }catch(e){} };
+try{ pSeedMult(); }catch(e){}
+
 function qzOpen(sub){
   [].slice.call(document.querySelectorAll('.page')).forEach(function(pg){pg.hidden=true});
   cur=sub; hubEl.hidden=true; homeEl.hidden=true; welcomeEl.hidden=true; tabsNav.hidden=true; bar.hidden=true; kgEl.hidden=true; qzEl.hidden=false;
@@ -4469,4 +4482,5 @@ draw();
 document.documentElement.classList.add('wz-ready'); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(draw);
 window.addEventListener('load',draw);
 })();
-</script></body></html>
+</script>
+</body></html>
