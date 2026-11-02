@@ -4225,7 +4225,7 @@ try{ pSeedMult(); }catch(e){}
   '.mt-r{display:flex;align-items:center;gap:.4rem;font-size:1.15rem;direction:ltr;font-weight:600}'+
   '.mt-r input{width:4.2rem;font-size:1.1rem;text-align:center;padding:.3rem;border:2px solid var(--line);border-radius:10px;background:#fff}'+
   '.mt-r.ok input{border-color:var(--ok);background:#e9f9ee}.mt-r.bad input{border-color:var(--bad);background:#fdecec}'+
-  '.mt-r .cr{font-size:.9rem;color:var(--bad)}.mt-b{display:flex;gap:.5rem;align-items:center;margin-top:.6rem;flex-wrap:wrap}.mt-sc{font-weight:700}';
+  '.mt-r .mtk{font-size:1.4rem;font-weight:900}.mt-r .mtk.mgood{color:#16a34a}.mt-r .mtk.mbad{color:#dc2626}.mt-r .cr{font-size:.9rem;color:var(--bad)}.mt-b{display:flex;gap:.5rem;align-items:center;margin-top:.6rem;flex-wrap:wrap}.mt-sc{font-weight:700}';
   document.head.appendChild(st);
   function renderMult(s){
     var sub=HS.sub; s.tbl=s.tbl||{};
@@ -4239,7 +4239,7 @@ try{ pSeedMult(); }catch(e){}
         t.type='text'; t.inputMode='numeric'; t.pattern='[0-9]*'; t.maxLength=3; t.autocomplete='off'; t.value=s.ans[i]||''; t.readOnly=!!tb.done; t.setAttribute('aria-label',n+' × '+k);
         t.addEventListener('input',function(){ t.value=t.value.replace(/\D/g,''); s.ans[i]=t.value; hsave(); });
         row.append(mkEl('span',null,n+' × '+k+' ='),t);
-        if(tb.done){ var good=String(s.ans[i]||'')===String(n*k); row.classList.add(good?'ok':'bad'); if(!good) row.appendChild(mkEl('span','cr','✔ '+(n*k))); }
+        if(tb.done){ var good=String(s.ans[i]||'')===String(n*k); row.classList.add(good?'ok':'bad'); row.appendChild(good?mkEl('span','mtk mgood','✔'):mkEl('span','mtk mbad','✖')); if(!good) row.appendChild(mkEl('span','cr','= '+(n*k))); }
         g.appendChild(row); ins.push(t);
       })(k); }
       var b=mkEl('div','mt-b'), chk=mkEl('button','btn primary','✅ Check'), redo=mkEl('button','btn','↺ Redo'), sc=mkEl('span','mt-sc'); chk.type=redo.type='button';
