@@ -1,0 +1,27 @@
+"use client";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase-browser";
+
+const LINKS = [
+  ["/", "لوحة القيادة"], ["/pos", "نقطة البيع"], ["/products", "المنتجات"],
+  ["/receive", "استلام بضاعة"], ["/alerts", "التنبيهات"], ["/sales", "المبيعات"],
+] as const;
+
+export default function Nav({ storeName, alerts }: { storeName: string; alerts: number }) {
+  const p = usePathname(); const r = useRouter();
+  return (
+    <nav className="side">
+      <div className="logo"><i>ب</i>بقالتي الذكية</div>
+      {LINKS.map(([href, t]) => (
+        <Link key={href} href={href} className={(href === "/" ? p === "/" : p.startsWith(href)) ? "on" : ""}>
+          <span>{t}</span>{href === "/alerts" && alerts > 0 && <span className="badge">{alerts.toLocaleString("ar-SA")}</span>}
+        </Link>
+      ))}
+      <div className="foot">
+        <span>{storeName}</span>
+        <button onClick={async () => { await supabaseBrowser().auth.signOut(); r.replace("/login"); r.refresh(); }}>تسجيل الخروج</button>
+      </div>
+    </nav>
+  );
+}
