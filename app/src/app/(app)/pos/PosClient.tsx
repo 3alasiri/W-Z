@@ -25,19 +25,29 @@ export default function PosClient({ storeId, products, store, customers }: { sto
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [cust, setCust] = useState("");
 
+  // المخزون بالحبة لكل منتج، والعبوات تستهلك منه
+  const unitsOf = useCallback((pid: string) => products.find((x) => x.product_id === pid && !x.pack_id)?.stock ?? 0, [products]);
+  const fits = (c: Line[], p: P, q: number) =>
+    c.reduce((a, l) => a + (l.p.product_id === p.product_id && l.p.id !== p.id ? l.q * l.p.units : 0), 0) + q * p.units <= unitsOf(p.product_id);
   const add = useCallback((p: P) => {
     setErr(""); setReceipt(null);
     setCart((c) => {
       const i = c.findIndex((l) => l.p.id === p.id);
+      const q = (i < 0 ? 0 : c[i].q) + 1;
+      if (!fits(c, p, q)) { setErr(`المتوفر من ${p.name} لا يكفي (${num(unitsOf(p.product_id))} حبة)`); return c; }
       if (i < 0) return [...c, { p, q: 1 }];
-      const n = [...c]; n[i] = { ...n[i], q: n[i].q + 1 }; return n;
+      const n = [...c]; n[i] = { ...n[i], q }; return n;
     });
-  }, []);
+  }, [unitsOf]); // eslint-disable-line react-hooks/exhaustive-deps
   const onScan = useCallback((code: string) => {
     const p = products.find((x) => x.barcode === code);
     p ? add(p) : setErr(`الباركود ${code} غير معرّف`);
   }, [products, add]);
-  const setQty = (i: number, q: number) => setCart((c) => q <= 0 ? c.filter((_, j) => j !== i) : c.map((l, j) => j === i ? { ...l, q } : l));
+  const setQty = (i: number, q: number) => setCart((c) => {
+    if (q <= 0) return c.filter((_, j) => j !== i);
+    if (!fits(c, c[i].p, q)) { setErr(`المتوفر من ${c[i].p.name} لا يكفي (${num(unitsOf(c[i].p.product_id))} حبة)`); return c; }
+    setErr(""); return c.map((l, j) => j === i ? { ...l, q } : l);
+  });
 
   const total = cart.reduce((a, l) => a + l.p.price * l.q, 0);
   const vatRate = Number(store.vat_rate);
@@ -66,10 +76,11 @@ export default function PosClient({ storeId, products, store, customers }: { sto
         <div className="head" style={{ margin: "12px 0", alignItems: "center" }}>
           <input placeholder="أو ابحث بالاسم" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث بالاسم" style={{ maxWidth: 260 }} />
           <div className="seg">{([["all", "الكل"], ["single", "مفرد"], ["packs", "عائلي وجملة"]] as const).map(([k, t]) =>
-            <button key={k} className={view === k ? "on" : ""} onClick={() => setView(k)}>{t}</button>)}</div>
+            <button key={k} className={view === k ? "on" : ""} aria-pressed={view === k} onClick={() => setView(k)}>{t}</button>)}</div>
         </div>
         <div className="posgrid">{quick.map((p) => (
-          <button key={p.id} className="poscard" onClick={() => add(p)} disabled={p.stock <= 0} style={p.stock <= 0 ? { opacity: .4 } : undefined}>
+          <button key={p.id} className="poscard" onClick={() => add(p)} disabled={p.stock <= 0} style={p.stock <= 0 ? { opacity: .4 } : undefined}
+            aria-label={`${p.name}${p.pack ? ` ${p.pack}` : ""} بسعر ${p.price} ريال، المتوفر ${p.stock}`}>
             <ProductImage src={p.image_url} name={p.name} category={p.category} />
             {p.pack && <span className="tag-pack">{p.pack}</span>}
             {p.price < p.list_price && <span className="tag-offer">عرض</span>}
@@ -98,9 +109,9 @@ export default function PosClient({ storeId, products, store, customers }: { sto
             <div className="list">{cart.map((l, i) => (
               <div className="row" key={l.p.id}><div className="thumb"><ProductImage src={l.p.image_url} name={l.p.name} category={l.p.category} size={40} /><div><div className="t">{l.p.name}</div><div className="s">{l.p.pack ? `${l.p.pack} · ` : ""}{SAR(l.p.price)}</div></div></div>
                 <div className="chips" style={{ alignItems: "center" }}>
-                  <button className="chip" onClick={() => setQty(i, l.q - 1)} aria-label="إنقاص">−</button>
-                  <input type="number" value={l.q} min={0} step="any" onChange={(e) => setQty(i, Number(e.target.value))} style={{ width: 64, textAlign: "center" }} aria-label="الكمية" />
-                  <button className="chip" onClick={() => setQty(i, l.q + 1)} aria-label="زيادة">+</button>
+                  <button className="chip" onClick={() => setQty(i, l.q - 1)} aria-label={`إنقاص ${l.p.name}`}>−</button>
+                  <input type="number" value={l.q} min={0} step="any" onChange={(e) => setQty(i, Number(e.target.value))} style={{ width: 64, textAlign: "center" }} aria-label={`كمية ${l.p.name}`} />
+                  <button className="chip" onClick={() => setQty(i, l.q + 1)} aria-label={`زيادة ${l.p.name}`}>+</button>
                 </div></div>))}</div>}
           <div className="total"><span>قبل الضريبة</span><span>{SAR(subtotal)}</span></div>
           <div className="total"><span>الضريبة {num(vatRate)}٪</span><span>{SAR(total - subtotal)}</span></div>

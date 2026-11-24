@@ -100,13 +100,17 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
               <b style={{ fontSize: 13 }}>{x.name}</b><span className="muted" style={{ fontSize: 11 }}>{x.reason}</span><span className="pr">{SAR(x.price)}</span>
               <button className="btn sm" disabled={!store.accepting_orders} onClick={() => add(p, o, 1)}>{cart[o.key] ? `في السلة (${num(cart[o.key])})` : "أضف"}</button></div>); })}</div></div>}
         <div className="seg" style={{ alignSelf: "center" }}>{([["all", "كل المنتجات"], ["single", "بالحبة"], ["packs", "العائلي والجملة"]] as const).map(([k, t]) =>
-          <button key={k} className={view === k ? "on" : ""} onClick={() => setView(k)}>{t}</button>)}</div>
+          <button key={k} className={view === k ? "on" : ""} aria-pressed={view === k} onClick={() => setView(k)}>{t}</button>)}</div>
         <input placeholder="ابحث عن منتج" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث" />
         {cats.length > 1 && <div className="chips"><button className={`btn sm ${cat ? "ghost" : ""}`} onClick={() => setCat("")}>الكل</button>
           {cats.map((c) => <button key={c} className={`btn sm ${cat === c ? "" : "ghost"}`} onClick={() => setCat(c)}>{c}</button>)}</div>}
         <div className="prods">{shown.map((p) => {
           const opts = optsOf(p);
-          const o = opts.find((x) => x.key === sel[p.id]) ?? (view === "packs" ? opts[opts.length - 1] : opts[0]);
+          // «بالحبة» يفرض الحبة، و«العائلي والجملة» يفرض عبوة (المختارة إن كانت عبوة، وإلا الأكبر)
+          const chosen = opts.find((x) => x.key === sel[p.id]);
+          const o = view === "single" ? opts[0]
+            : view === "packs" ? (chosen && chosen.units > 1 ? chosen : opts[opts.length - 1])
+            : chosen ?? opts[0];
           const perUnit = o.price / o.units; const save = o.units > 1 ? (Number(p.price) - perUnit) * o.units : 0;
           const n = cart[o.key] ?? 0; const can = Math.floor((p.available - usedUnits(p.id, o.key)) / o.units) > n;
           return (
@@ -117,8 +121,8 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
               {o.price < o.original_price && <span className="tag-offer">خصم {num(Math.round((1 - o.price / o.original_price) * 100))}٪</span>}
             </div>
             <b>{p.name}</b>
-            {opts.length > 1 && view !== "single" && <div className="packs" role="group" aria-label="العبوة">{opts.map((x) =>
-              <button key={x.key} className={x.key === o.key ? "on" : ""} onClick={() => setSel({ ...sel, [p.id]: x.key })}>{x.units > 1 ? x.label.split(" ")[0] + " ×" + num(x.units) : "حبة"}</button>)}</div>}
+            {opts.length > 1 && view !== "single" && <div className="packs" role="group" aria-label={`عبوة ${p.name}`}>{opts.filter((x) => view !== "packs" || x.units > 1).map((x) =>
+              <button key={x.key} className={x.key === o.key ? "on" : ""} aria-pressed={x.key === o.key} aria-label={x.units > 1 ? `${x.label} بسعر ${x.price}` : "حبة واحدة"} onClick={() => setSel({ ...sel, [p.id]: x.key })}>{x.units > 1 ? x.label.split(" ")[0] + " ×" + num(x.units) : "حبة"}</button>)}</div>}
             <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
               <span className="pr">{SAR(o.price)}</span>
               {o.price < o.original_price && <s className="muted" style={{ fontSize: 11.5 }}>{SAR(o.original_price)}</s>}
@@ -126,7 +130,7 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
             {o.units > 1 ? <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
               <span className="muted" style={{ fontSize: 11 }}>{SAR(perUnit)} للحبة</span>{save > 0.05 && <span className="save">وفّر {SAR(save)}</span>}</div>
               : <span className="muted" style={{ fontSize: 11 }}>{p.unit || "حبة"}{p.available <= 5 ? ` · متبقٍ ${num(p.available)}` : ""}</span>}
-            {n ? <div className="qty"><button onClick={() => add(p, o, -1)} aria-label="إنقاص">−</button><b>{num(n)}</b><button onClick={() => add(p, o, 1)} disabled={!can} aria-label="زيادة">+</button></div>
+            {n ? <div className="qty" role="group" aria-label={`كمية ${p.name}`}><button onClick={() => add(p, o, -1)} aria-label={`إنقاص ${p.name}`}>−</button><b aria-live="polite">{num(n)}</b><button onClick={() => add(p, o, 1)} disabled={!can} aria-label={`زيادة ${p.name}`}>+</button></div>
               : <button className="btn sm" disabled={!store.accepting_orders || !can} onClick={() => add(p, o, 1)}>{can ? "أضف للسلة" : "غير متوفر"}</button>}
           </div>); })}</div>
         {shown.length === 0 && <p className="muted">لا منتجات مطابقة.</p>}
@@ -136,7 +140,7 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
           <div className="card"><h2>سلتك</h2>
             {lines.map((l) => <div className="row" key={l.o.key}><div className="thumb"><ProductImage src={l.p.image_url} name={l.p.name} category={l.p.category} size={52} />
               <div><div className="t">{l.p.name}</div><div className="s">{l.o.units > 1 ? `${l.o.label} · ` : ""}{SAR(l.o.price)}</div></div></div>
-              <div className="qty"><button type="button" onClick={() => add(l.p, l.o, -1)}>−</button><b>{num(l.q)}</b><button type="button" onClick={() => add(l.p, l.o, 1)}>+</button></div></div>)}
+              <div className="qty" role="group" aria-label={`كمية ${l.p.name}`}><button type="button" onClick={() => add(l.p, l.o, -1)} aria-label={`إنقاص ${l.p.name}`}>−</button><b aria-live="polite">{num(l.q)}</b><button type="button" onClick={() => add(l.p, l.o, 1)} aria-label={`زيادة ${l.p.name}`}>+</button></div></div>)}
             <div className="total"><span>المنتجات</span><span>{SAR(itemsTotal)}</span></div>
             <div className="total"><span>التوصيل</span><span>{SAR(fee)}</span></div>
             <div className="total big"><span>الإجمالي (شامل الضريبة)</span><span>{SAR(itemsTotal + fee)}</span></div>

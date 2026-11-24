@@ -170,8 +170,8 @@ export default function ProductsClient({ storeId, rows, cats, sups, packs }: { s
     <div className="card">
       <div className="head" style={{ marginBottom: 12, alignItems: "center" }}>
         <input placeholder="ابحث بالاسم أو الباركود" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث" style={{ maxWidth: 320 }} />
-        <div className="seg"><button className={!cat ? "on" : ""} onClick={() => setCat("")}>الكل</button>
-          {allCats.map((c) => <button key={c} className={cat === c ? "on" : ""} onClick={() => setCat(c)}>{c}</button>)}</div>
+        <div className="seg" role="group" aria-label="الفئة"><button className={!cat ? "on" : ""} aria-pressed={!cat} onClick={() => setCat("")}>الكل</button>
+          {allCats.map((c) => <button key={c} className={cat === c ? "on" : ""} aria-pressed={cat === c} onClick={() => setCat(c)}>{c}</button>)}</div>
       </div>
       <div className="tbl"><table><thead><tr><th>المنتج</th><th>الفئة</th><th>المخزون</th><th>أقرب صلاحية</th><th>سعر الحبة</th><th>العبوات</th><th></th></tr></thead>
         <tbody>{shown.map((x) => {
