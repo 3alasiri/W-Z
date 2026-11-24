@@ -5,8 +5,11 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import { SAR, num } from "@/lib/format";
 import BarcodeInput from "@/components/BarcodeInput";
 import InvoiceQR from "@/components/InvoiceQR";
+import ProductImage from "@/components/ProductImage";
 
-type P = { id: string; barcode: string; name: string; price: number; list_price: number; stock: number };
+export type Sellable = { id: string; product_id: string; pack_id: string | null; units: number; barcode: string; name: string; pack: string | null;
+  category: string | null; image_url: string | null; price: number; list_price: number; stock: number };
+type P = Sellable;
 type Line = { p: P; q: number };
 type Receipt = { number: number; total: number; vat: number; subtotal: number; method: string; lines: Line[]; at: string };
 const METHODS: Record<string, string> = { cash: "نقدًا", card: "مدى / بطاقة", credit: "آجل" };
@@ -44,7 +47,7 @@ export default function PosClient({ storeId, products, store, customers }: { sto
     setBusy(true); setErr("");
     const sb = supabaseBrowser();
     const { data: id, error } = await sb.rpc("complete_sale", {
-      p_store: storeId, p_payment: method, p_customer: cust || null, p_items: cart.map((l) => ({ product_id: l.p.id, qty: l.q })),
+      p_store: storeId, p_payment: method, p_customer: cust || null, p_items: cart.map((l) => ({ product_id: l.p.product_id, qty: l.q, pack_id: l.p.pack_id })),
     });
     if (error) { setBusy(false); return setErr(error.message); }
     const { data: s } = await sb.from("sales").select("number,total,vat,subtotal,created_at").eq("id", id).single();
@@ -52,17 +55,27 @@ export default function PosClient({ storeId, products, store, customers }: { sto
     setCart([]); setCust(""); setBusy(false); r.refresh();
   }
 
-  const quick = products.filter((p) => !q || p.name.includes(q)).slice(0, 24);
+  const [view, setView] = useState<"all" | "single" | "packs">("all");
+  const quick = products.filter((p) => (!q || p.name.includes(q)) && (view === "all" || (view === "packs" ? !!p.pack_id : !p.pack_id))).slice(0, 60);
 
   return (<>
     <div className="head noprint"><div><h1>نقطة البيع</h1><div className="sub">الأسعار شاملة ضريبة القيمة المضافة {num(vatRate)}٪</div></div></div>
     <div className="grid g3">
       <div className="card noprint"><h2>امسح المنتج</h2>
         <BarcodeInput onScan={onScan} />
-        <input placeholder="أو ابحث بالاسم" value={q} onChange={(e) => setQ(e.target.value)} style={{ margin: "12px 0" }} aria-label="بحث بالاسم" />
-        <div className="chips">{quick.map((p) => (
-          <button key={p.id} className="chip" onClick={() => add(p)} disabled={Number(p.stock) <= 0} style={Number(p.stock) <= 0 ? { opacity: .45 } : undefined}>
-            <b>{p.name}</b>{SAR(p.price)}{Number(p.price) < Number(p.list_price) && <span className="pill p-warn" style={{ marginInlineStart: 4 }}>عرض</span>} · <span className="muted">{num(p.stock)}</span></button>))}
+        <div className="head" style={{ margin: "12px 0", alignItems: "center" }}>
+          <input placeholder="أو ابحث بالاسم" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث بالاسم" style={{ maxWidth: 260 }} />
+          <div className="seg">{([["all", "الكل"], ["single", "مفرد"], ["packs", "عائلي وجملة"]] as const).map(([k, t]) =>
+            <button key={k} className={view === k ? "on" : ""} onClick={() => setView(k)}>{t}</button>)}</div>
+        </div>
+        <div className="posgrid">{quick.map((p) => (
+          <button key={p.id} className="poscard" onClick={() => add(p)} disabled={p.stock <= 0} style={p.stock <= 0 ? { opacity: .4 } : undefined}>
+            <ProductImage src={p.image_url} name={p.name} category={p.category} />
+            {p.pack && <span className="tag-pack">{p.pack}</span>}
+            {p.price < p.list_price && <span className="tag-offer">عرض</span>}
+            <b>{p.name}</b>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}><span className="pr">{SAR(p.price)}</span><span className="muted" style={{ fontSize: 11 }}>{num(p.stock)}</span></div>
+          </button>))}
           {products.length === 0 && <p className="muted">أضف منتجات واستلم بضاعة أولًا.</p>}
         </div>
       </div>
@@ -71,7 +84,7 @@ export default function PosClient({ storeId, products, store, customers }: { sto
           <div className="list">
             <h2 style={{ textAlign: "center", margin: 0 }}>{store.name}</h2>
             <div className="muted" style={{ textAlign: "center", fontSize: 12 }}>فاتورة ضريبية مبسطة رقم {num(receipt.number)}<br />{new Date(receipt.at).toLocaleString("ar-SA")}{store.vat_number && <><br />الرقم الضريبي {store.vat_number}</>}</div>
-            {receipt.lines.map((l) => <div className="total" key={l.p.id}><span>{l.p.name} × {num(l.q)}</span><span>{SAR(l.p.price * l.q)}</span></div>)}
+            {receipt.lines.map((l) => <div className="total" key={l.p.id}><span>{l.p.name}{l.p.pack ? ` (${l.p.pack})` : ""} × {num(l.q)}</span><span>{SAR(l.p.price * l.q)}</span></div>)}
             <div className="total"><span>قبل الضريبة</span><span>{SAR(receipt.subtotal)}</span></div>
             <div className="total"><span>الضريبة</span><span>{SAR(receipt.vat)}</span></div>
             <div className="total big"><span>الإجمالي</span><span>{SAR(receipt.total)}</span></div>
@@ -83,7 +96,7 @@ export default function PosClient({ storeId, products, store, customers }: { sto
           <h2>الفاتورة</h2>
           {cart.length === 0 ? <p className="muted">امسح أول منتج لبدء الفاتورة.</p> :
             <div className="list">{cart.map((l, i) => (
-              <div className="row" key={l.p.id}><div><div className="t">{l.p.name}</div><div className="s">{SAR(l.p.price)}</div></div>
+              <div className="row" key={l.p.id}><div className="thumb"><ProductImage src={l.p.image_url} name={l.p.name} category={l.p.category} size={40} /><div><div className="t">{l.p.name}</div><div className="s">{l.p.pack ? `${l.p.pack} · ` : ""}{SAR(l.p.price)}</div></div></div>
                 <div className="chips" style={{ alignItems: "center" }}>
                   <button className="chip" onClick={() => setQty(i, l.q - 1)} aria-label="إنقاص">−</button>
                   <input type="number" value={l.q} min={0} step="any" onChange={(e) => setQty(i, Number(e.target.value))} style={{ width: 64, textAlign: "center" }} aria-label="الكمية" />

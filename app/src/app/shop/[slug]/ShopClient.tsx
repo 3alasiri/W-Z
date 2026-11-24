@@ -4,9 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { SAR, num } from "@/lib/format";
+import ProductImage from "@/components/ProductImage";
 
 type Store = { id: string; slug: string; name: string; phone: string | null; address: string | null; delivery_fee: number; min_order: number; radius_km: number; accepting_orders: boolean; has_location: boolean };
-type P = { id: string; name: string; category: string | null; unit: string; price: number; original_price: number; available: number };
+type Pk = { id: string; name: string; units: number; price: number; original_price: number };
+type P = { id: string; name: string; category: string | null; unit: string; image_url: string | null; price: number; original_price: number; available: number; packs: Pk[] };
+type O = { key: string; pack_id: string | null; label: string; units: number; price: number; original_price: number };
+const optsOf = (p: P): O[] => [
+  { key: `${p.id}|s`, pack_id: null, label: "مفرد", units: 1, price: Number(p.price), original_price: Number(p.original_price) },
+  ...(p.packs ?? []).map((k) => ({ key: `${p.id}|${k.id}`, pack_id: k.id, label: k.name, units: Number(k.units), price: Number(k.price), original_price: Number(k.original_price) })),
+];
 type Rec = { id: string; name: string; price: number; original_price: number; available: number; reason: string };
 type Me = { name: string; phone: string | null; address: string | null; lat: number | null; lng: number | null } | null;
 
@@ -21,8 +28,11 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
   const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
   const [recs, setRecs] = useState<Rec[]>([]);
 
-  useEffect(() => { try { setCart(JSON.parse(localStorage.getItem(key) || "{}")); } catch {} }, [key]);
-  const cartKey = Object.keys(cart).sort().join(",");
+  useEffect(() => { try {
+    const raw = JSON.parse(localStorage.getItem(key) || "{}") as Record<string, number>;
+    setCart(Object.fromEntries(Object.entries(raw).map(([k, v]) => [k.includes("|") ? k : `${k}|s`, v])));
+  } catch {} }, [key]);
+  const cartKey = Array.from(new Set(Object.keys(cart).map((k) => k.split("|")[0]))).sort().join(",");
   useEffect(() => {
     const t = setTimeout(() => {
       supabaseBrowser().rpc("shop_recommendations", { p_slug: store.slug, p_cart: cartKey ? cartKey.split(",") : [] }).then(({ data }) => setRecs(data ?? []));
@@ -30,18 +40,26 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
     return () => clearTimeout(t);
   }, [cartKey, store.slug]);
   const save = (c: Record<string, number>) => { setCart(c); try { localStorage.setItem(key, JSON.stringify(c)); } catch {} };
-  const add = (p: P, d: number) => { const n = Math.min(p.available, Math.max(0, (cart[p.id] ?? 0) + d)); const c = { ...cart }; if (n) c[p.id] = n; else delete c[p.id]; save(c); };
+  const [sel, setSel] = useState<Record<string, string>>({});
+  const [view, setView] = useState<"all" | "single" | "packs">("all");
+  const usedUnits = (pid: string, except: string) => Object.entries(cart).reduce((a, [k, q]) => k.startsWith(pid + "|") && k !== except ? a + q * (allOpts[k]?.o.units ?? 1) : a, 0);
+  const add = (p: P, o: O, d: number) => {
+    const max = Math.floor((p.available - usedUnits(p.id, o.key)) / o.units);
+    const n = Math.min(max, Math.max(0, (cart[o.key] ?? 0) + d)); const c = { ...cart };
+    if (n) c[o.key] = n; else delete c[o.key]; save(c);
+  };
 
   const cats = useMemo(() => Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[], [products]);
-  const shown = products.filter((p) => (!cat || p.category === cat) && (!q || p.name.includes(q)));
+  const shown = products.filter((p) => (!cat || p.category === cat) && (!q || p.name.includes(q)) && (view !== "packs" || (p.packs ?? []).length > 0));
+  const allOpts = useMemo(() => Object.fromEntries(products.flatMap((p) => optsOf(p).map((o) => [o.key, { p, o }]))), [products]);
   useEffect(() => {
     if (q.trim().length < 2) return;
     const t = setTimeout(() => { supabaseBrowser().rpc("log_shop_search", { p_slug: store.slug, p_term: q, p_results: shown.length }).then(() => {}); }, 1200);
     return () => clearTimeout(t);
   }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
   const byId = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);
-  const lines = products.filter((p) => cart[p.id]).map((p) => ({ p, q: cart[p.id] }));
-  const itemsTotal = lines.reduce((a, l) => a + l.p.price * l.q, 0);
+  const lines = Object.entries(cart).filter(([k]) => allOpts[k]).map(([k, q]) => ({ ...allOpts[k], q }));
+  const itemsTotal = lines.reduce((a, l) => a + l.o.price * l.q, 0);
   const fee = f.fulfillment === "delivery" ? Number(store.delivery_fee) : 0;
   const count = lines.reduce((a, l) => a + l.q, 0);
   const belowMin = itemsTotal < Number(store.min_order);
@@ -53,7 +71,7 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
   async function place(e: React.FormEvent) {
     e.preventDefault(); setErr(""); setBusy(true);
     const { data, error } = await supabaseBrowser().rpc("place_order", {
-      p_slug: store.slug, p_items: lines.map((l) => ({ product_id: l.p.id, qty: l.q })), p_fulfillment: f.fulfillment, p_payment: f.payment,
+      p_slug: store.slug, p_items: lines.map((l) => ({ product_id: l.p.id, qty: l.q, pack_id: l.o.pack_id })), p_fulfillment: f.fulfillment, p_payment: f.payment,
       p_name: f.name, p_phone: f.phone, p_address: f.fulfillment === "delivery" ? f.address : null,
       p_lat: f.fulfillment === "delivery" ? loc?.lat ?? null : null, p_lng: f.fulfillment === "delivery" ? loc?.lng ?? null : null, p_notes: f.notes || null,
     });
@@ -75,26 +93,50 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
     <div className="shop" style={{ marginTop: 14 }}>
       {!store.accepting_orders && <div className="err">المتجر لا يستقبل طلبات الآن.</div>}
       {!checkout ? (<>
-        {recs.length > 0 && !q && <div className="card"><h2 style={{ marginBottom: 8 }}>مقترح لك</h2>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>{recs.map((x) => { const p = byId[x.id]; return p && (
-            <div key={x.id} className="prod" style={{ minWidth: 150 }}><b>{x.name}</b><span className="muted" style={{ fontSize: 11 }}>{x.reason}</span><span className="pr">{SAR(x.price)}</span>
-              <button className="btn sm" disabled={!store.accepting_orders} onClick={() => add(p, 1)}>{cart[x.id] ? `في السلة (${num(cart[x.id])})` : "أضف"}</button></div>); })}</div></div>}
+        {recs.length > 0 && !q && view === "all" && <div className="card"><h2 style={{ marginBottom: 10 }}>مقترح لك</h2>
+          <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6 }}>{recs.map((x) => { const p = byId[x.id]; if (!p) return null; const o = optsOf(p)[0]; return (
+            <div key={x.id} className="prod" style={{ minWidth: 150, maxWidth: 160 }}>
+              <ProductImage src={p.image_url} name={p.name} category={p.category} />
+              <b style={{ fontSize: 13 }}>{x.name}</b><span className="muted" style={{ fontSize: 11 }}>{x.reason}</span><span className="pr">{SAR(x.price)}</span>
+              <button className="btn sm" disabled={!store.accepting_orders} onClick={() => add(p, o, 1)}>{cart[o.key] ? `في السلة (${num(cart[o.key])})` : "أضف"}</button></div>); })}</div></div>}
+        <div className="seg" style={{ alignSelf: "center" }}>{([["all", "كل المنتجات"], ["single", "بالحبة"], ["packs", "العائلي والجملة"]] as const).map(([k, t]) =>
+          <button key={k} className={view === k ? "on" : ""} onClick={() => setView(k)}>{t}</button>)}</div>
         <input placeholder="ابحث عن منتج" value={q} onChange={(e) => setQ(e.target.value)} aria-label="بحث" />
         {cats.length > 1 && <div className="chips"><button className={`btn sm ${cat ? "ghost" : ""}`} onClick={() => setCat("")}>الكل</button>
           {cats.map((c) => <button key={c} className={`btn sm ${cat === c ? "" : "ghost"}`} onClick={() => setCat(c)}>{c}</button>)}</div>}
-        <div className="prods">{shown.map((p) => (
-          <div className="prod" key={p.id}><b>{p.name}</b><span className="pr">{SAR(p.price)}{Number(p.price) < Number(p.original_price) && <> <s className="muted" style={{ fontWeight: 400, fontSize: 12 }}>{SAR(p.original_price)}</s> <span className="pill p-warn">عرض</span></>}</span>
-            {cart[p.id] ? <div className="qty"><button onClick={() => add(p, -1)} aria-label="إنقاص">−</button><b>{num(cart[p.id])}</b><button onClick={() => add(p, 1)} aria-label="زيادة">+</button></div>
-              : <button className="btn sm" disabled={!store.accepting_orders} onClick={() => add(p, 1)}>أضف للسلة</button>}
-            {p.available <= 3 && <span className="muted" style={{ fontSize: 11 }}>متبقٍ {num(p.available)} فقط</span>}
-          </div>))}</div>
+        <div className="prods">{shown.map((p) => {
+          const opts = optsOf(p);
+          const o = opts.find((x) => x.key === sel[p.id]) ?? (view === "packs" ? opts[opts.length - 1] : opts[0]);
+          const perUnit = o.price / o.units; const save = o.units > 1 ? (Number(p.price) - perUnit) * o.units : 0;
+          const n = cart[o.key] ?? 0; const can = Math.floor((p.available - usedUnits(p.id, o.key)) / o.units) > n;
+          return (
+          <div className="prod" key={p.id}>
+            <div style={{ position: "relative" }}>
+              <ProductImage src={p.image_url} name={p.name} category={p.category} />
+              {o.units > 1 && <span className="tag-pack">{o.label}</span>}
+              {o.price < o.original_price && <span className="tag-offer">خصم {num(Math.round((1 - o.price / o.original_price) * 100))}٪</span>}
+            </div>
+            <b>{p.name}</b>
+            {opts.length > 1 && view !== "single" && <div className="packs" role="group" aria-label="العبوة">{opts.map((x) =>
+              <button key={x.key} className={x.key === o.key ? "on" : ""} onClick={() => setSel({ ...sel, [p.id]: x.key })}>{x.units > 1 ? x.label.split(" ")[0] + " ×" + num(x.units) : "حبة"}</button>)}</div>}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+              <span className="pr">{SAR(o.price)}</span>
+              {o.price < o.original_price && <s className="muted" style={{ fontSize: 11.5 }}>{SAR(o.original_price)}</s>}
+            </div>
+            {o.units > 1 ? <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+              <span className="muted" style={{ fontSize: 11 }}>{SAR(perUnit)} للحبة</span>{save > 0.05 && <span className="save">وفّر {SAR(save)}</span>}</div>
+              : <span className="muted" style={{ fontSize: 11 }}>{p.unit || "حبة"}{p.available <= 5 ? ` · متبقٍ ${num(p.available)}` : ""}</span>}
+            {n ? <div className="qty"><button onClick={() => add(p, o, -1)} aria-label="إنقاص">−</button><b>{num(n)}</b><button onClick={() => add(p, o, 1)} disabled={!can} aria-label="زيادة">+</button></div>
+              : <button className="btn sm" disabled={!store.accepting_orders || !can} onClick={() => add(p, o, 1)}>{can ? "أضف للسلة" : "غير متوفر"}</button>}
+          </div>); })}</div>
         {shown.length === 0 && <p className="muted">لا منتجات مطابقة.</p>}
       </>) : (
         <form className="list" onSubmit={place}>
           <button type="button" className="btn ghost sm" style={{ alignSelf: "flex-start" }} onClick={() => setCheckout(false)}>→ متابعة التسوق</button>
           <div className="card"><h2>سلتك</h2>
-            {lines.map((l) => <div className="row" key={l.p.id}><div><div className="t">{l.p.name}</div><div className="s">{SAR(l.p.price)}</div></div>
-              <div className="qty"><button type="button" onClick={() => add(l.p, -1)}>−</button><b>{num(l.q)}</b><button type="button" onClick={() => add(l.p, 1)}>+</button></div></div>)}
+            {lines.map((l) => <div className="row" key={l.o.key}><div className="thumb"><ProductImage src={l.p.image_url} name={l.p.name} category={l.p.category} size={52} />
+              <div><div className="t">{l.p.name}</div><div className="s">{l.o.units > 1 ? `${l.o.label} · ` : ""}{SAR(l.o.price)}</div></div></div>
+              <div className="qty"><button type="button" onClick={() => add(l.p, l.o, -1)}>−</button><b>{num(l.q)}</b><button type="button" onClick={() => add(l.p, l.o, 1)}>+</button></div></div>)}
             <div className="total"><span>المنتجات</span><span>{SAR(itemsTotal)}</span></div>
             <div className="total"><span>التوصيل</span><span>{SAR(fee)}</span></div>
             <div className="total big"><span>الإجمالي (شامل الضريبة)</span><span>{SAR(itemsTotal + fee)}</span></div>

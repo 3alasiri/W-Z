@@ -1,6 +1,6 @@
 /* ============================================================
    بقالتي الذكية — نظام التصميم
-   مظاهر: نعناع (افتراضي) · رمل · ليل · محيط  |  خطوط قابلة للتبديل
+   مظاهر: ملكي (افتراضي) · عنّابي · نعناع · رمل · ليل · محيط  |  خطوط قابلة للتبديل
    ============================================================ */
 
 /* ---------- الخطوط ---------- */
@@ -12,7 +12,30 @@ html[data-font="readex"]  { --f-body: "Readex Pro", Tahoma, sans-serif; }
 :root { --f-display: var(--f-body); }
 
 /* ---------- المظاهر ---------- */
-:root, html[data-theme="mint"] {
+/* ملكي (افتراضي): كحلي عميق مع ذهب الزعفران */
+:root, html[data-theme="royal"] {
+  --bg: #f4f5f9; --bg-2: #eceef5; --panel: #ffffff; --panel-2: #f8f9fc;
+  --ink: #141a2e; --muted: #64708a; --line: #e3e6ef; --line-2: #cfd5e3;
+  --brand: #1f3a6e; --brand-2: #2f5296; --brand-ink: #ffffff; --brand-soft: #e7ecf7; --accent: #d9a032;
+  --ok: #2f8a5e; --warn: #b7781c; --bad: #c0413d; --ok-bg: #e4f3ea; --warn-bg: #fbf0da; --bad-bg: #f9e4e3;
+  --side: #0f1a33; --side-2: #1a2a4f; --side-ink: #c9d3ea; --side-active: rgba(217,160,50,.14);
+  --shadow: 0 1px 2px rgba(15,26,51,.05), 0 8px 24px -12px rgba(15,26,51,.18);
+  --shadow-lg: 0 2px 4px rgba(15,26,51,.06), 0 24px 48px -20px rgba(15,26,51,.3);
+  --glow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent);
+  color-scheme: light;
+}
+/* عنّابي: خمري أنيق مع ذهبي */
+html[data-theme="rose"] {
+  --bg: #f8f4f5; --bg-2: #f1e9eb; --panel: #ffffff; --panel-2: #fbf7f8;
+  --ink: #2a1419; --muted: #7a6268; --line: #ede2e5; --line-2: #dccbd0;
+  --brand: #7d2443; --brand-2: #9c3459; --brand-ink: #ffffff; --brand-soft: #f6e6eb; --accent: #c9973a;
+  --ok: #2f8a5e; --warn: #b7781c; --bad: #c0413d; --ok-bg: #e4f3ea; --warn-bg: #fbf0da; --bad-bg: #f9e4e3;
+  --side: #2b0f19; --side-2: #4a1a2c; --side-ink: #ecd4dc; --side-active: rgba(201,151,58,.16);
+  --shadow: 0 1px 2px rgba(43,15,25,.05), 0 8px 24px -12px rgba(43,15,25,.2);
+  --shadow-lg: 0 2px 4px rgba(43,15,25,.06), 0 24px 48px -20px rgba(43,15,25,.32);
+  color-scheme: light;
+}
+html[data-theme="mint"] {
   --bg: #f4f6f2; --bg-2: #eaf0e8; --panel: #ffffff; --panel-2: #f8faf7;
   --ink: #15241c; --muted: #66756d; --line: #e1e8e0; --line-2: #ccd8cd;
   --brand: #1f6b4a; --brand-2: #2f8a62; --brand-ink: #ffffff; --brand-soft: #e3f0e8; --accent: #e0a526;
@@ -20,7 +43,6 @@ html[data-font="readex"]  { --f-body: "Readex Pro", Tahoma, sans-serif; }
   --side: #143426; --side-2: #1d4733; --side-ink: #cfe3d6; --side-active: rgba(255,255,255,.12);
   --shadow: 0 1px 2px rgba(20,40,30,.05), 0 8px 24px -12px rgba(20,40,30,.18);
   --shadow-lg: 0 2px 4px rgba(20,40,30,.06), 0 24px 48px -20px rgba(20,40,30,.28);
-  --glow: 0 0 0 4px color-mix(in srgb, var(--brand) 18%, transparent);
   color-scheme: light;
 }
 html[data-theme="sand"] {
@@ -320,3 +342,35 @@ video.cam { width: 100%; max-height: 260px; border-radius: 12px; background: #00
   body { background: #fff; }
   .card { box-shadow: none; border-color: #ddd; }
 }
+
+/* ---------- صور المنتجات والعبوات ---------- */
+.pimg {
+  position: relative; aspect-ratio: 1 / 1; width: 100%; max-width: 100%; border-radius: 14px; overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #ffffff, #f3f4f7); display: grid; place-items: center; border: 1px solid var(--line);
+}
+.pimg img { width: 86%; height: 86%; object-fit: contain; mix-blend-mode: multiply; transition: transform .35s var(--ease); }
+.pimg.ph span { font-weight: 800; font-size: 34px; opacity: .85; }
+html[data-theme="night"] .pimg, html[data-theme="ocean"] .pimg { background: radial-gradient(circle at 50% 40%, #ffffff, #e9ecf2); border-color: transparent; }
+.prod:hover .pimg img { transform: scale(1.06); }
+.thumb { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.thumb .pimg { border-radius: 10px; }
+.thumb .pimg img { width: 90%; height: 90%; }
+
+.packs { display: flex; gap: 6px; flex-wrap: wrap; }
+.packs button {
+  all: unset; cursor: pointer; flex: 1 1 auto; text-align: center; padding: 6px 8px; border-radius: 10px; font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); transition: all .15s; min-width: 52px;
+}
+.packs button.on { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
+.save { display: inline-flex; gap: 4px; align-items: center; font-size: 11px; font-weight: 800; color: var(--ok); background: var(--ok-bg); padding: 2px 8px; border-radius: 20px; }
+.tag-pack { position: absolute; top: 8px; inset-inline-start: 8px; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: var(--accent); color: #1b1305; box-shadow: var(--shadow); }
+.tag-offer { position: absolute; top: 8px; inset-inline-end: 8px; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: var(--bad); color: #fff; }
+.seg { display: inline-flex; background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; }
+.seg button { all: unset; cursor: pointer; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.seg button.on { background: var(--panel); color: var(--brand); box-shadow: var(--shadow); }
+.poscard { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); position: relative; transition: transform .15s var(--ease), box-shadow .2s, border-color .2s; }
+.poscard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); border-color: var(--brand); }
+.poscard b { font-size: 12.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.8em; }
+.poscard .pr { font-weight: 800; color: var(--brand); font-size: 13px; }
+.posgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.drop { border: 2px dashed var(--line-2); border-radius: 14px; padding: 12px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }

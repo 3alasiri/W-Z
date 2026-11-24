@@ -9,7 +9,7 @@ export default async function Shop({ params }: { params: Promise<{ slug: string 
   const { slug } = await params;
   const sb = await supabaseServer();
   const [{ data: store }, { data: products }, { data: { user } }] = await Promise.all([
-    sb.rpc("shop_store", { p_slug: slug }), sb.rpc("shop_catalog", { p_slug: slug }), sb.auth.getUser(),
+    sb.rpc("shop_store", { p_slug: slug }), sb.rpc("shop_items", { p_slug: slug }), sb.auth.getUser(),
   ]);
   if (!store) notFound();
   const { data: me } = user ? await sb.from("customers").select("name,phone,address,lat,lng").eq("user_id", user.id).eq("store_id", store.id).maybeSingle() : { data: null };

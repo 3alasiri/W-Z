@@ -1,5 +1,7 @@
 export const THEMES = [
-  { id: "auto", name: "تلقائي", hint: "يتبع إعداد جهازك", sw: ["#f4f6f2", "#1f6b4a", "#101814"] },
+  { id: "auto", name: "تلقائي", hint: "يتبع إعداد جهازك", sw: ["#f4f5f9", "#1f3a6e", "#0a111e"] },
+  { id: "royal", name: "ملكي", hint: "كحلي وذهبي", sw: ["#f4f5f9", "#1f3a6e", "#d9a032"] },
+  { id: "rose", name: "عنّابي", hint: "خمري أنيق", sw: ["#f8f4f5", "#7d2443", "#c9973a"] },
   { id: "mint", name: "نعناع", hint: "فاتح منعش", sw: ["#f4f6f2", "#1f6b4a", "#e0a526"] },
   { id: "sand", name: "رمل", hint: "دافئ هادئ", sw: ["#f7f1e7", "#9a5b2a", "#2f6f73"] },
   { id: "night", name: "ليل", hint: "داكن مريح", sw: ["#0f1512", "#4cc38a", "#f0b84d"] },
@@ -19,11 +21,11 @@ export const FONTS_URL =
 
 /** يُنفَّذ قبل عرض الصفحة لتطبيق المظهر والخط المحفوظين دون وميض */
 export const BOOT_SCRIPT = `(function(){try{var d=document.documentElement,t=localStorage.getItem('ui-theme')||'auto',f=localStorage.getItem('ui-font')||'tajawal';
-if(t==='auto'){t=matchMedia('(prefers-color-scheme: dark)').matches?'night':'mint'}d.setAttribute('data-theme',t);d.setAttribute('data-font',f)}catch(e){}})()`;
+if(t==='auto'){t=matchMedia('(prefers-color-scheme: dark)').matches?'ocean':'royal'}d.setAttribute('data-theme',t);d.setAttribute('data-font',f)}catch(e){}})()`;
 
 export function applyAppearance(theme: string, font: string) {
   const d = document.documentElement;
-  const t = theme === "auto" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "mint") : theme;
+  const t = theme === "auto" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "ocean" : "royal") : theme;
   d.setAttribute("data-theme", t); d.setAttribute("data-font", font);
   try { localStorage.setItem("ui-theme", theme); localStorage.setItem("ui-font", font); } catch {}
 }
