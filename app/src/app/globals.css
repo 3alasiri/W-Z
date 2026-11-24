@@ -356,12 +356,12 @@ html[data-theme="night"] .pimg, html[data-theme="ocean"] .pimg { background: rad
 .thumb .pimg { border-radius: 10px; }
 .thumb .pimg img { width: 90%; height: 90%; }
 
-.packs { display: flex; gap: 6px; flex-wrap: wrap; }
+.packs { display: flex; gap: 4px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
 .packs button {
-  all: unset; cursor: pointer; flex: 1 1 auto; text-align: center; padding: 6px 8px; border-radius: 10px; font-size: 12px; font-weight: 700;
-  border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); transition: all .15s; min-width: 52px;
+  all: unset; cursor: pointer; flex: 1 1 0; min-width: 0; text-align: center; padding: 6px 4px; border-radius: 9px; font-size: 11.5px; font-weight: 700;
+  color: var(--muted); transition: all .15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.packs button.on { border-color: var(--brand); background: var(--brand-soft); color: var(--brand); }
+.packs button.on { background: var(--panel); color: var(--brand); box-shadow: var(--shadow); }
 .save { display: inline-flex; gap: 4px; align-items: center; font-size: 11px; font-weight: 800; color: var(--ok); background: var(--ok-bg); padding: 2px 8px; border-radius: 20px; }
 .tag-pack { position: absolute; top: 8px; inset-inline-start: 8px; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: var(--accent); color: #1b1305; box-shadow: var(--shadow); }
 .tag-offer { position: absolute; top: 8px; inset-inline-end: 8px; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: var(--bad); color: #fff; }
