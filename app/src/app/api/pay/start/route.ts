@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const origin = process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin;
   const back = `${origin}/shop/${encodeURIComponent(slug)}/orders/${o.id}`;
   try {
-    const inv = await createInvoice({ amount: Math.round(Number(o.total) * 100), description: `طلب رقم ${o.number}`, orderId: o.id,
+    const inv = await createInvoice({ amount: Math.round(Number(o.total) * 100), description: `طلب رقم ${o.number}`,
       successUrl: `${back}?paid=1`, backUrl: back, callbackUrl: `${origin}/api/pay/webhook` });
     const { error } = await supabaseAdmin().rpc("mark_order_payment", { p_order: o.id, p_ref: inv.id, p_status: "ref", p_amount: 0 });
     if (error) throw error;

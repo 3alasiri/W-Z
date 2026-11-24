@@ -36,7 +36,7 @@ export default function ShopClient({ store, products, loggedIn, me, onlinePay }:
   const shown = products.filter((p) => (!cat || p.category === cat) && (!q || p.name.includes(q)));
   useEffect(() => {
     if (q.trim().length < 2) return;
-    const t = setTimeout(() => { supabaseBrowser().rpc("log_shop_search", { p_slug: store.slug, p_term: q, p_results: shown.length }); }, 1200);
+    const t = setTimeout(() => { supabaseBrowser().rpc("log_shop_search", { p_slug: store.slug, p_term: q, p_results: shown.length }).then(() => {}); }, 1200);
     return () => clearTimeout(t);
   }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
   const byId = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);

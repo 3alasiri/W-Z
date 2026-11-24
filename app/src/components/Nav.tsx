@@ -15,7 +15,7 @@ export default function Nav({ storeName, alerts, drafts, newOrders }: { storeNam
     <nav className="side">
       <div className="logo"><i>ب</i>بقالتي الذكية</div>
       {LINKS.map(([href, t]) => (
-        <Link key={href} href={href} className={(href === "/" ? p === "/" : p.startsWith(href)) ? "on" : ""}>
+        <Link key={href} href={href} prefetch={false} className={(href === "/" ? p === "/" : p.startsWith(href)) ? "on" : ""}>
           <span>{t}</span>{href === "/alerts" && alerts > 0 && <span className="badge">{alerts.toLocaleString("ar-SA")}</span>}
           {href === "/orders" && newOrders > 0 && <span className="badge">{newOrders.toLocaleString("ar-SA")}</span>}
           {href === "/purchasing" && drafts > 0 && <span className="badge">{drafts.toLocaleString("ar-SA")}</span>}

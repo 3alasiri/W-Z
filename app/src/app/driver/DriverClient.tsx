@@ -28,7 +28,7 @@ export default function DriverClient({ userId, storeName, orders }: { userId: st
       setGps("on");
       if (Date.now() - last.current < 20000) return;
       last.current = Date.now();
-      sb.rpc("update_my_location", { p_lat: p.coords.latitude, p_lng: p.coords.longitude });
+      sb.rpc("update_my_location", { p_lat: p.coords.latitude, p_lng: p.coords.longitude }).then(({ error }) => { if (error) last.current = 0; });
     }, () => setGps("denied"), { enableHighAccuracy: true, maximumAge: 10000 });
     return () => navigator.geolocation.clearWatch(id);
   }, [delivering]); // eslint-disable-line react-hooks/exhaustive-deps
