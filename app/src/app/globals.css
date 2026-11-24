@@ -3,8 +3,8 @@
   --brand:#1f6b4a;--brand-ink:#fff;--brand-soft:#e2efe7;--accent:#e0a526;
   --ok:#2f8a57;--warn:#c9861a;--bad:#c2413b;--ok-bg:#e3f3e9;--warn-bg:#fbf0d9;--bad-bg:#f8e3e1;
   --side:#173a2b;--side-ink:#d6e6dc;
-  --f-display:"Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif;
-  --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
+  --f-display:"Tajawal",Tahoma,sans-serif;
+  --f-body:"Tajawal",Tahoma,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#111814;--panel:#18221d;--ink:#e4ece6;--muted:#97a69e;--line:#2a3832;
