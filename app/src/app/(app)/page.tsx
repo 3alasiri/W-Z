@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireStore } from "@/lib/supabase-server";
 import { SAR, num, expiryLabel } from "@/lib/format";
+import SeedDemoButton from "@/components/SeedDemoButton";
 
 export default async function Dashboard() {
   const { sb, storeId, storeName, role } = await requireStore();
@@ -30,6 +31,9 @@ export default async function Dashboard() {
   return (<>
     <div className="head"><div><h1>لوحة القيادة</h1><div className="sub">{storeName} · {new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" })}</div></div>
       <Link className="btn" href="/pos">فتح نقطة البيع</Link></div>
+    {(stock ?? []).length === 0 && <div className="card list"><h2>متجرك جاهز</h2>
+      <p className="muted" style={{ margin: 0 }}>ابدأ بإضافة منتجاتك من صفحة المنتجات، أو جرّب النظام ببيانات تجريبية واقعية: منتجات، موردون، عملاء، ومبيعات 6 أسابيع تُظهر التوقعات والتحليلات.</p>
+      {role === "owner" && <SeedDemoButton storeId={storeId} />}</div>}
     <div className="grid g4">
       <div className="card kpi"><div className="l">مبيعات اليوم</div><div className="v">{SAR(revenue)}</div></div>
       <div className="card kpi"><div className="l">عدد الفواتير</div><div className="v">{num(today?.length ?? 0)}</div></div>

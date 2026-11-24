@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { SAR, num, ORDER_STATUS, PAY, mapsLink } from "@/lib/format";
 import BarcodeInput from "@/components/BarcodeInput";
+import DeliveryMap from "@/components/DeliveryMap";
+import { useEffect } from "react";
 
-type O = { id: string; number: number; status: string; fulfillment: string; address: string | null; lat: number | null; lng: number | null; notes: string | null; payment_method: string; items_total: number; delivery_fee: number; total: number; driver_id: string | null; created_at: string; cancel_reason: string | null; customers: { name: string; phone: string | null } };
+type O = { id: string; number: number; status: string; fulfillment: string; payment_status: string; paid_amount: number | null; address: string | null; lat: number | null; lng: number | null; notes: string | null; payment_method: string; items_total: number; delivery_fee: number; total: number; driver_id: string | null; created_at: string; cancel_reason: string | null; customers: { name: string; phone: string | null } };
 type I = { id: number; name: string; qty: number; ordered_qty: number; unit_price: number; picked: boolean; products: { barcode: string } };
 
 export default function OrderClient({ o, items, drivers }: { o: O; items: I[]; drivers: { user_id: string; email: string }[] }) {
@@ -15,6 +17,14 @@ export default function OrderClient({ o, items, drivers }: { o: O; items: I[]; d
   const [busy, setBusy] = useState(false);
   const [reason, setReason] = useState("");
   const picking = o.status === "new" || o.status === "preparing";
+  const [trk, setTrk] = useState<{ store_lat: number | null; store_lng: number | null; driver_lat: number | null; driver_lng: number | null } | null>(null);
+  useEffect(() => {
+    if (o.fulfillment !== "delivery") return;
+    const load = () => sb.rpc("order_tracking", { p_order: o.id }).then(({ data }) => data && setTrk(data));
+    load();
+    if (o.status !== "out_for_delivery") return;
+    const i = setInterval(load, 20000); return () => clearInterval(i);
+  }, [o.id, o.status, o.fulfillment]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const run = async (fn: () => PromiseLike<{ error: { message: string } | null }>, ok?: string) => {
     setBusy(true); setMsg(null);
@@ -35,8 +45,12 @@ export default function OrderClient({ o, items, drivers }: { o: O; items: I[]; d
 
   return (<>
     <div className="head"><div><h1>طلب #{num(o.number)}</h1>
-      <div className="sub">{new Date(o.created_at).toLocaleString("ar-SA")} · {o.fulfillment === "pickup" ? "استلام من المتجر" : "توصيل"} · الدفع عند الاستلام {PAY[o.payment_method]}</div></div>
-      <span className={`pill ${ORDER_STATUS[o.status][1]}`}>{ORDER_STATUS[o.status][0]}</span></div>
+      <div className="sub">{new Date(o.created_at).toLocaleString("ar-SA")} · {o.fulfillment === "pickup" ? "استلام من المتجر" : "توصيل"} · {o.payment_status === "none" ? `الدفع عند الاستلام ${PAY[o.payment_method]}` : "دفع إلكتروني مسبق"}</div></div>
+      <div className="chips">{o.payment_status === "paid" && <span className="pill p-ok">مدفوع إلكترونيًا</span>}
+        {o.payment_status === "pending" && <span className="pill p-warn">بانتظار الدفع</span>}{o.payment_status === "failed" && <span className="pill p-bad">فشل الدفع</span>}
+        <span className={`pill ${ORDER_STATUS[o.status][1]}`}>{ORDER_STATUS[o.status][0]}</span></div></div>
+    {o.payment_status === "pending" && <div className="err">لا تجهّز هذا الطلب حتى يكتمل الدفع. يُلغى تلقائيًا إن لم يُدفع خلال 30 دقيقة.</div>}
+    {o.payment_status === "paid" && o.paid_amount != null && Number(o.paid_amount) > Number(o.total) && <div className="err">دفع العميل {SAR(o.paid_amount)}. أعد له {SAR(Number(o.paid_amount) - Number(o.total))} من لوحة Moyasar عن الأصناف غير المتوفرة.</div>}
     {msg && <div className={msg.t === "err" ? "err" : "okmsg"}>{msg.m}</div>}
     <div className="grid g3">
       <div className="card">
@@ -54,7 +68,7 @@ export default function OrderClient({ o, items, drivers }: { o: O; items: I[]; d
           </div>))}</div>
         <div className="total"><span>الأصناف</span><span>{SAR(o.items_total)}</span></div>
         <div className="total"><span>التوصيل</span><span>{SAR(o.delivery_fee)}</span></div>
-        <div className="total big"><span>المطلوب تحصيله</span><span>{SAR(o.total)}</span></div>
+        <div className="total big"><span>{o.payment_status === "paid" ? "الإجمالي (مدفوع)" : "المطلوب تحصيله"}</span><span>{SAR(o.total)}</span></div>
       </div>
       <div className="list">
         <div className="card"><h2>العميل</h2>
@@ -63,6 +77,11 @@ export default function OrderClient({ o, items, drivers }: { o: O; items: I[]; d
           {o.address && <div className="muted">{o.address}</div>}
           {o.notes && <div className="okmsg" style={{ marginTop: 8 }}>ملاحظة: {o.notes}</div>}
           {nav && <a className="btn ghost sm" style={{ marginTop: 8 }} href={nav} target="_blank" rel="noreferrer">فتح الموقع في الخرائط</a>}
+          {o.lat != null && <div style={{ marginTop: 8 }}><DeliveryMap height={200} points={[
+            trk?.store_lat != null ? { lat: trk.store_lat, lng: trk.store_lng!, label: "المتجر", color: "#1f6b4a" } : null,
+            { lat: o.lat, lng: o.lng!, label: "العميل", color: "#c2413b" },
+            trk?.driver_lat != null ? { lat: trk.driver_lat, lng: trk.driver_lng!, label: "المندوب", color: "#e0a526" } : null,
+          ]} /></div>}
         </div>
         {o.fulfillment === "delivery" && !["delivered", "cancelled"].includes(o.status) && (
           <div className="card"><h2>المندوب</h2>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { SAR, num, ORDER_STATUS } from "@/lib/format";
 
-type O = { id: string; number: number; status: string; fulfillment: string; total: number; payment_method: string; address: string | null; created_at: string; driver_id: string | null; customers: { name: string; phone: string | null } };
+type O = { id: string; number: number; status: string; payment_status: string; fulfillment: string; total: number; payment_method: string; address: string | null; created_at: string; driver_id: string | null; customers: { name: string; phone: string | null } };
 const COLS = ["new", "preparing", "ready", "out_for_delivery"];
 
 function beep() {
@@ -43,6 +43,8 @@ export default function OrdersBoard({ storeId, orders }: { storeId: string; orde
               <div>{o.customers?.name}</div>
               <div className="muted" style={{ fontSize: 12 }}>{o.fulfillment === "pickup" ? "استلام من المتجر" : o.address} · منذ {num(mins(o.created_at))} د</div>
               {c === "ready" && o.fulfillment === "delivery" && !o.driver_id && <span className="pill p-warn">بلا مندوب</span>}
+              {o.payment_status === "pending" && <span className="pill p-warn">بانتظار الدفع</span>}
+              {o.payment_status === "paid" && <span className="pill p-ok">مدفوع</span>}
             </Link>))}
         </div>); })}
     </div>

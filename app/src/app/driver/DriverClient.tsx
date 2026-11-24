@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { SAR, num, PAY, ORDER_STATUS, mapsLink } from "@/lib/format";
 
-type O = { id: string; number: number; status: string; address: string | null; lat: number | null; lng: number | null; notes: string | null; total: number; payment_method: string; delivered_at: string | null;
+type O = { id: string; number: number; status: string; payment_status: string; address: string | null; lat: number | null; lng: number | null; notes: string | null; total: number; payment_method: string; delivered_at: string | null;
   customers: { name: string; phone: string | null }; order_items: { name: string; qty: number }[] };
 
 export default function DriverClient({ userId, storeName, orders }: { userId: string; storeName: string; orders: O[] }) {
@@ -54,7 +54,8 @@ export default function DriverClient({ userId, storeName, orders }: { userId: st
           <div className="muted">{o.address}</div>
           {o.notes && <div className="okmsg">ملاحظة العميل: {o.notes}</div>}
           <div className="muted" style={{ fontSize: 12 }}>{o.order_items.filter((i) => Number(i.qty) > 0).map((i) => `${i.name} × ${num(i.qty)}`).join("، ")}</div>
-          <div className="total big"><span>حصّل {PAY[o.payment_method]}</span><span>{SAR(o.total)}</span></div>
+          {o.payment_status === "paid" ? <div className="okmsg">مدفوع مسبقًا. لا تحصّل أي مبلغ.</div>
+            : <div className="total big"><span>حصّل {PAY[o.payment_method]}</span><span>{SAR(o.total)}</span></div>}
           <div className="grid g2">
             {nav && <a className="btn ghost" href={nav} target="_blank" rel="noreferrer">الملاحة</a>}
             {o.customers.phone && <a className="btn ghost" href={`tel:${o.customers.phone}`}>اتصال {o.customers.phone}</a>}
@@ -64,7 +65,7 @@ export default function DriverClient({ userId, storeName, orders }: { userId: st
         </div>); })}
       {done.length > 0 && <div className="card"><h2>سلّمتها اليوم ({num(done.length)})</h2>
         {done.map((o) => <div key={o.id} className="total"><span>#{num(o.number)} · {o.customers.name} · {PAY[o.payment_method]}</span><span>{SAR(o.total)}</span></div>)}
-        <div className="total big"><span>نقدًا معك</span><span>{SAR(done.filter((o) => o.payment_method === "cash").reduce((a, o) => a + Number(o.total), 0))}</span></div>
+        <div className="total big"><span>نقدًا معك</span><span>{SAR(done.filter((o) => o.payment_method === "cash" && o.payment_status !== "paid").reduce((a, o) => a + Number(o.total), 0))}</span></div>
       </div>}
     </div></main>
   );

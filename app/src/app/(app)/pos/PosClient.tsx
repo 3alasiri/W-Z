@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { SAR, num } from "@/lib/format";
 import BarcodeInput from "@/components/BarcodeInput";
+import InvoiceQR from "@/components/InvoiceQR";
 
 type P = { id: string; barcode: string; name: string; price: number; list_price: number; stock: number };
 type Line = { p: P; q: number };
@@ -75,6 +76,7 @@ export default function PosClient({ storeId, products, store, customers }: { sto
             <div className="total"><span>الضريبة</span><span>{SAR(receipt.vat)}</span></div>
             <div className="total big"><span>الإجمالي</span><span>{SAR(receipt.total)}</span></div>
             <div className="muted" style={{ textAlign: "center" }}>طريقة الدفع: {METHODS[receipt.method]}</div>
+            <InvoiceQR seller={store.name} vatNumber={store.vat_number} time={receipt.at} total={Number(receipt.total)} vat={Number(receipt.vat)} />
             <div className="chips noprint"><button className="btn" onClick={() => window.print()}>طباعة الإيصال</button><button className="btn ghost" onClick={() => setReceipt(null)}>فاتورة جديدة</button></div>
           </div>
         ) : (<>

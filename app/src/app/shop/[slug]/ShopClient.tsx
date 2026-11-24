@@ -10,7 +10,7 @@ type P = { id: string; name: string; category: string | null; unit: string; pric
 type Rec = { id: string; name: string; price: number; original_price: number; available: number; reason: string };
 type Me = { name: string; phone: string | null; address: string | null; lat: number | null; lng: number | null } | null;
 
-export default function ShopClient({ store, products, loggedIn, me }: { store: Store; products: P[]; loggedIn: boolean; me: Me }) {
+export default function ShopClient({ store, products, loggedIn, me, onlinePay }: { store: Store; products: P[]; loggedIn: boolean; me: Me; onlinePay: boolean }) {
   const r = useRouter();
   const key = `cart:${store.slug}`;
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -57,9 +57,15 @@ export default function ShopClient({ store, products, loggedIn, me }: { store: S
       p_name: f.name, p_phone: f.phone, p_address: f.fulfillment === "delivery" ? f.address : null,
       p_lat: f.fulfillment === "delivery" ? loc?.lat ?? null : null, p_lng: f.fulfillment === "delivery" ? loc?.lng ?? null : null, p_notes: f.notes || null,
     });
-    setBusy(false);
-    if (error) return setErr(error.message);
-    save({}); r.push(`/shop/${store.slug}/orders/${data}`);
+    if (error) { setBusy(false); return setErr(error.message); }
+    save({});
+    if (f.payment === "online") {
+      const res = await fetch("/api/pay/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ orderId: data, slug: store.slug }) });
+      const j = await res.json().catch(() => ({}));
+      if (res.ok && j.url) { window.location.href = j.url; return; }
+      setBusy(false); r.push(`/shop/${store.slug}/orders/${data}`); return;
+    }
+    setBusy(false); r.push(`/shop/${store.slug}/orders/${data}`);
   }
 
   return (<>
@@ -106,12 +112,13 @@ export default function ShopClient({ store, products, loggedIn, me }: { store: S
                   <button type="button" className="btn ghost sm" onClick={locate}>{loc ? "تحديث الموقع" : "تحديد موقعي"}</button></div></>}
               <div className="field"><label htmlFor="cno">ملاحظات</label><input id="cno" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} placeholder="مثال: البوابة الخلفية" /></div>
             </div>
-            <div className="card"><h2>الدفع عند الاستلام</h2><div className="chips">
-              <button type="button" className={`btn sm ${f.payment === "cash" ? "" : "ghost"}`} onClick={() => setF({ ...f, payment: "cash" })}>نقدًا</button>
-              <button type="button" className={`btn sm ${f.payment === "card" ? "" : "ghost"}`} onClick={() => setF({ ...f, payment: "card" })}>مدى / بطاقة</button></div></div>
+            <div className="card"><h2>الدفع</h2><div className="chips">
+              {onlinePay && <button type="button" className={`btn sm ${f.payment === "online" ? "" : "ghost"}`} onClick={() => setF({ ...f, payment: "online" })}>ادفع الآن (مدى، Apple Pay، بطاقة)</button>}
+              <button type="button" className={`btn sm ${f.payment === "cash" ? "" : "ghost"}`} onClick={() => setF({ ...f, payment: "cash" })}>نقدًا عند الاستلام</button>
+              <button type="button" className={`btn sm ${f.payment === "card" ? "" : "ghost"}`} onClick={() => setF({ ...f, payment: "card" })}>مدى عند الاستلام</button></div></div>
             {err && <div className="err">{err}</div>}
             {belowMin && <div className="err">الحد الأدنى للطلب {SAR(store.min_order)}</div>}
-            <button className="btn" disabled={busy || !lines.length || belowMin || !store.accepting_orders}>{busy ? "جارٍ الإرسال..." : `تأكيد الطلب · ${SAR(itemsTotal + fee)}`}</button>
+            <button className="btn" disabled={busy || !lines.length || belowMin || !store.accepting_orders}>{busy ? "جارٍ الإرسال..." : f.payment === "online" ? `ادفع ${SAR(itemsTotal + fee)}` : `تأكيد الطلب · ${SAR(itemsTotal + fee)}`}</button>
           </>)}
         </form>)}
     </div>
