@@ -19,7 +19,7 @@ export default function SeedDemoButton({ storeId }: { storeId: string }) {
       if (i > 0 && i < STEPS - 1) sales += Number(data);
     }
     setStep(-1);
-    setMsg(`أُضيف 25 منتجًا و4 موردين و8 عملاء و${sales.toLocaleString("ar-SA")} فاتورة لآخر 6 أسابيع.`); r.refresh();
+    setMsg(`أُضيف 30 منتجًا بصورها الرسمية ومورّدان و8 عملاء و${sales.toLocaleString("ar-SA")} فاتورة لآخر 6 أسابيع.`); r.refresh();
   }
   const busy = step >= 0;
   return (
