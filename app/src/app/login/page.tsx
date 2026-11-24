@@ -1,10 +1,16 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
 export default function Login() {
+  return <Suspense><LoginForm /></Suspense>;
+}
+
+function LoginForm() {
   const r = useRouter();
+  const next = useSearchParams().get("next") || "/";
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -20,7 +26,7 @@ export default function Login() {
     setBusy(false);
     if (error) return setMsg({ t: "err", m: error.message === "Invalid login credentials" ? "البريد أو كلمة المرور غير صحيحة" : error.message });
     if (!data.session) return setMsg({ t: "ok", m: "أرسلنا رابط التفعيل إلى بريدك. فعّل الحساب ثم سجّل الدخول." });
-    r.replace("/"); r.refresh();
+    r.replace(next.startsWith("/") ? next : "/"); r.refresh();
   }
 
   return (

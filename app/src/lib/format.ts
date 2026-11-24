@@ -14,3 +14,10 @@ export const PO_STATUS: Record<string, [string, string]> = {
 };
 export const PAY: Record<string, string> = { cash: "نقدًا", card: "مدى / بنك", credit: "آجل" };
 export const today = () => new Date().toISOString().slice(0, 10);
+export const ORDER_STATUS: Record<string, [string, string]> = {
+  new: ["جديد", "p-bad"], preparing: ["قيد التجهيز", "p-warn"], ready: ["جاهز", "p-info"],
+  out_for_delivery: ["مع المندوب", "p-info"], delivered: ["تم التسليم", "p-ok"], cancelled: ["ملغى", "p-bad"],
+};
+export const ROLES: Record<string, string> = { owner: "مالك", manager: "مدير", cashier: "كاشير", stock: "أمين مخزون", driver: "مندوب توصيل" };
+export const mapsLink = (lat?: number | null, lng?: number | null, address?: string | null) =>
+  lat != null && lng != null ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}` : address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}` : null;
