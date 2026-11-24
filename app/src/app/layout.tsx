@@ -1,12 +1,18 @@
 import "./globals.css";
-import type { Metadata } from "next";
-export const metadata: Metadata = { title: "بقالتي الذكية", description: "نظام إدارة البقالات" };
+import type { Metadata, Viewport } from "next";
+import { BOOT_SCRIPT, FONTS_URL } from "@/lib/appearance";
+
+export const metadata: Metadata = { title: "بقالتي الذكية", description: "نظام ذكي لإدارة بقالات الأحياء" };
+export const viewport: Viewport = { themeColor: "#1f6b4a", width: "device-width", initialScale: 1 };
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" data-theme="mint" data-font="tajawal" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="stylesheet" href={FONTS_URL} />
       </head>
       <body>{children}</body>
     </html>

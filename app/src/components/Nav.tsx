@@ -2,28 +2,46 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
+import Icon from "./Icon";
+import { AppearanceMini } from "./Appearance";
 
-const LINKS = [
-  ["/", "لوحة القيادة"], ["/assistant", "المساعد الذكي"], ["/insights", "الذكاء والتحليلات"], ["/pos", "نقطة البيع"], ["/orders", "الطلبات"], ["/products", "المنتجات"],
-  ["/receive", "استلام بضاعة"], ["/alerts", "التنبيهات"], ["/purchasing", "المشتريات"],
-  ["/suppliers", "الموردون"], ["/customers", "العملاء"], ["/sales", "المبيعات"], ["/accounting", "المحاسبة"], ["/team", "الفريق"], ["/settings", "الإعدادات"],
-] as const;
+type L = { href: string; t: string; i: string; badge?: "alerts" | "drafts" | "orders" };
+const GROUPS: { g: string; items: L[] }[] = [
+  { g: "اليوم", items: [
+    { href: "/", t: "لوحة القيادة", i: "home" }, { href: "/assistant", t: "المساعد الذكي", i: "spark" },
+    { href: "/insights", t: "الذكاء والتحليلات", i: "chart" }] },
+  { g: "البيع", items: [
+    { href: "/pos", t: "نقطة البيع", i: "cart" }, { href: "/orders", t: "الطلبات", i: "bag", badge: "orders" },
+    { href: "/sales", t: "المبيعات", i: "receipt" }, { href: "/customers", t: "العملاء", i: "users" }] },
+  { g: "المخزون", items: [
+    { href: "/products", t: "المنتجات", i: "box" }, { href: "/receive", t: "استلام بضاعة", i: "inbox" },
+    { href: "/alerts", t: "التنبيهات", i: "bell", badge: "alerts" }, { href: "/purchasing", t: "المشتريات", i: "truck", badge: "drafts" },
+    { href: "/suppliers", t: "الموردون", i: "factory" }] },
+  { g: "الإدارة", items: [
+    { href: "/accounting", t: "المحاسبة", i: "calc" }, { href: "/team", t: "الفريق", i: "team" }, { href: "/settings", t: "الإعدادات", i: "gear" }] },
+];
 
 export default function Nav({ storeName, alerts, drafts, newOrders }: { storeName: string; alerts: number; drafts: number; newOrders: number }) {
   const p = usePathname(); const r = useRouter();
+  const counts = { alerts, drafts, orders: newOrders };
   return (
-    <nav className="side">
-      <div className="logo"><i>ب</i>بقالتي الذكية</div>
-      {LINKS.map(([href, t]) => (
-        <Link key={href} href={href} prefetch={false} className={(href === "/" ? p === "/" : p.startsWith(href)) ? "on" : ""}>
-          <span>{t}</span>{href === "/alerts" && alerts > 0 && <span className="badge">{alerts.toLocaleString("ar-SA")}</span>}
-          {href === "/orders" && newOrders > 0 && <span className="badge">{newOrders.toLocaleString("ar-SA")}</span>}
-          {href === "/purchasing" && drafts > 0 && <span className="badge">{drafts.toLocaleString("ar-SA")}</span>}
-        </Link>
-      ))}
+    <nav className="side" aria-label="القائمة الرئيسية">
+      <div className="logo"><i>ب</i><div>بقالتي الذكية<small>{storeName}</small></div></div>
+      {GROUPS.map((g) => (<div key={g.g} style={{ display: "contents" }}>
+        <div className="group">{g.g}</div>
+        {g.items.map((l) => {
+          const on = l.href === "/" ? p === "/" : p.startsWith(l.href); const n = l.badge ? counts[l.badge] : 0;
+          return (
+            <Link key={l.href} href={l.href} prefetch={false} className={on ? "on" : ""} aria-current={on ? "page" : undefined}>
+              <Icon name={l.i} /><span className="lbl">{l.t}</span>
+              {n > 0 && <span className="badge">{n.toLocaleString("ar-SA")}</span>}
+            </Link>);
+        })}
+      </div>))}
       <div className="foot">
-        <span>{storeName}</span>
-        <button onClick={async () => { await supabaseBrowser().auth.signOut(); r.replace("/login"); r.refresh(); }}>تسجيل الخروج</button>
+        <AppearanceMini />
+        <div className="who"><b>{storeName.slice(0, 1)}</b><span style={{ flex: 1 }}>{storeName}</span>
+          <button className="link" onClick={async () => { await supabaseBrowser().auth.signOut(); r.replace("/login"); r.refresh(); }}>خروج</button></div>
       </div>
     </nav>
   );

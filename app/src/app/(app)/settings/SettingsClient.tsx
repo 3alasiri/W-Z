@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
+import Appearance from "@/components/Appearance";
 
 type S = Record<string, string | number | boolean | null>;
 const F = [
@@ -37,6 +38,9 @@ export default function SettingsClient({ s, canEdit }: { s: S; canEdit: boolean 
   return (<>
     <div className="head"><div><h1>الإعدادات</h1><div className="sub">بيانات المتجر والطلب الأونلاين</div></div></div>
     {msg && <div className={msg.t === "err" ? "err" : "okmsg"}>{msg.m}</div>}
+    <div className="card"><h2>المظهر والخط</h2>
+      <p className="muted" style={{ marginTop: -6 }}>يُحفظ اختيارك على هذا الجهاز، ويسري على النظام ومتجر العملاء.</p>
+      <Appearance /></div>
     <div className="card"><h2>رابط متجرك للعملاء</h2>
       <div className="scan"><input readOnly value={shopUrl} dir="ltr" aria-label="رابط المتجر" />
         <button className="btn" onClick={async () => { try { await navigator.clipboard.writeText(shopUrl); setMsg({ t: "ok", m: "نُسخ الرابط" }); } catch {} }}>نسخ</button>

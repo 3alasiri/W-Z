@@ -16,14 +16,14 @@ export default function Onboarding() {
     r.replace("/"); r.refresh();
   }
   return (
-    <div className="auth">
-      <form className="card" onSubmit={submit}>
+    <div className="auth" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="side-form"><form className="card" onSubmit={submit}>
         <h1>إعداد متجرك</h1>
         <div className="sub">سننشئ لك موقعين افتراضيين: رفوف المتجر والمستودع.</div>
         <div className="field"><label htmlFor="n">اسم المتجر</label><input id="n" required value={name} onChange={(e) => setName(e.target.value)} placeholder="مثال: بقالة النرجس" /></div>
         {err && <div className="err">{err}</div>}
         <button className="btn" disabled={busy}>إنشاء المتجر</button>
-      </form>
+      </form></div>
     </div>
   );
 }
