@@ -69,7 +69,7 @@ export default function ProductsClient({ storeId, rows, cats, sups }: { storeId:
           <div className="field"><label htmlFor="ct">الفئة</label><input id="ct" list="cats" value={f.category} onChange={set("category")} /></div>
           <div className="field"><label htmlFor="sp">المورد</label><input id="sp" list="sups" value={f.supplier} onChange={set("supplier")} /></div>
           <div className="field"><label htmlFor="ld">مدة التوريد (أيام)</label><input id="ld" type="number" min="1" value={f.lead} onChange={set("lead")} /></div>
-          <div className="field"><label htmlFor="co">التكلفة</label><input id="co" type="number" step="0.01" min="0" value={f.cost} onChange={set("cost")} /></div>
+          <div className="field"><label htmlFor="co">التكلفة (قبل الضريبة)</label><input id="co" type="number" step="0.01" min="0" value={f.cost} onChange={set("cost")} /></div>
           <div className="field"><label htmlFor="pr">سعر البيع (شامل الضريبة)</label><input id="pr" type="number" step="0.01" min="0" required value={f.price} onChange={set("price")} /></div>
           <div className="field"><label htmlFor="mq">الحد الأدنى للكمية</label><input id="mq" type="number" min="0" value={f.min_qty} onChange={set("min_qty")} /></div>
         </div>

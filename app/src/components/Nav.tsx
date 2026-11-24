@@ -5,10 +5,11 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 
 const LINKS = [
   ["/", "لوحة القيادة"], ["/pos", "نقطة البيع"], ["/products", "المنتجات"],
-  ["/receive", "استلام بضاعة"], ["/alerts", "التنبيهات"], ["/sales", "المبيعات"],
+  ["/receive", "استلام بضاعة"], ["/alerts", "التنبيهات"], ["/purchasing", "المشتريات"],
+  ["/suppliers", "الموردون"], ["/customers", "العملاء"], ["/sales", "المبيعات"], ["/accounting", "المحاسبة"],
 ] as const;
 
-export default function Nav({ storeName, alerts }: { storeName: string; alerts: number }) {
+export default function Nav({ storeName, alerts, drafts }: { storeName: string; alerts: number; drafts: number }) {
   const p = usePathname(); const r = useRouter();
   return (
     <nav className="side">
@@ -16,6 +17,7 @@ export default function Nav({ storeName, alerts }: { storeName: string; alerts: 
       {LINKS.map(([href, t]) => (
         <Link key={href} href={href} className={(href === "/" ? p === "/" : p.startsWith(href)) ? "on" : ""}>
           <span>{t}</span>{href === "/alerts" && alerts > 0 && <span className="badge">{alerts.toLocaleString("ar-SA")}</span>}
+          {href === "/purchasing" && drafts > 0 && <span className="badge">{drafts.toLocaleString("ar-SA")}</span>}
         </Link>
       ))}
       <div className="foot">

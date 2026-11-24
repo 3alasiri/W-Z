@@ -8,3 +8,9 @@ export const expiryLabel = (d: string) => {
   if (n === 0) return "ينتهي اليوم";
   return `خلال ${num(n)} يوم`;
 };
+export const PO_STATUS: Record<string, [string, string]> = {
+  draft: ["مسودة تحتاج اعتماد", "p-warn"], approved: ["معتمد", "p-info"], sent: ["أُرسل للمورد", "p-info"],
+  partial: ["استلام جزئي", "p-warn"], received: ["مستلم", "p-ok"], cancelled: ["ملغى", "p-bad"],
+};
+export const PAY: Record<string, string> = { cash: "نقدًا", card: "مدى / بنك", credit: "آجل" };
+export const today = () => new Date().toISOString().slice(0, 10);

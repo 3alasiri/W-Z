@@ -39,7 +39,7 @@ export default function AlertsClient({ rows }: { rows: A[] }) {
             <span className={`pill ${a.kind === "out" ? "p-bad" : "p-warn"}`}>{a.kind === "out" ? "نفد" : "منخفض"}</span>
           </div>))}
         {qty.length === 0 && <p className="muted">كل الكميات فوق نقطة الطلب.</p>}
-        <p className="muted" style={{ fontSize: 12 }}>أوامر الشراء التلقائية من الموردين تأتي في المرحلة 2.</p>
+        <p className="muted" style={{ fontSize: 12 }}>يجهّز النظام أوامر الشراء لهذه الأصناف تلقائيًا كل ساعة. <a href="/purchasing">اذهب إلى المشتريات</a></p>
       </div></div>
     </div>
   </>);

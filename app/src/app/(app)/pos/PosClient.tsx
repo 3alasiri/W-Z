@@ -10,13 +10,16 @@ type Line = { p: P; q: number };
 type Receipt = { number: number; total: number; vat: number; subtotal: number; method: string; lines: Line[]; at: string };
 const METHODS: Record<string, string> = { cash: "نقدًا", card: "مدى / بطاقة", credit: "آجل" };
 
-export default function PosClient({ storeId, products, store }: { storeId: string; products: P[]; store: { name: string; vat_rate: number; vat_number: string | null } }) {
+type C = { id: string; name: string; phone: string | null };
+
+export default function PosClient({ storeId, products, store, customers }: { storeId: string; products: P[]; store: { name: string; vat_rate: number; vat_number: string | null }; customers: C[] }) {
   const r = useRouter();
   const [cart, setCart] = useState<Line[]>([]);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const [cust, setCust] = useState("");
 
   const add = useCallback((p: P) => {
     setErr(""); setReceipt(null);
@@ -40,12 +43,12 @@ export default function PosClient({ storeId, products, store }: { storeId: strin
     setBusy(true); setErr("");
     const sb = supabaseBrowser();
     const { data: id, error } = await sb.rpc("complete_sale", {
-      p_store: storeId, p_payment: method, p_items: cart.map((l) => ({ product_id: l.p.id, qty: l.q })),
+      p_store: storeId, p_payment: method, p_customer: cust || null, p_items: cart.map((l) => ({ product_id: l.p.id, qty: l.q })),
     });
     if (error) { setBusy(false); return setErr(error.message); }
     const { data: s } = await sb.from("sales").select("number,total,vat,subtotal,created_at").eq("id", id).single();
     setReceipt({ number: s!.number, total: s!.total, vat: s!.vat, subtotal: s!.subtotal, method, lines: cart, at: s!.created_at });
-    setCart([]); setBusy(false); r.refresh();
+    setCart([]); setCust(""); setBusy(false); r.refresh();
   }
 
   const quick = products.filter((p) => !q || p.name.includes(q)).slice(0, 24);
@@ -91,6 +94,12 @@ export default function PosClient({ storeId, products, store }: { storeId: strin
           <div className="grid g2" style={{ marginTop: 10 }}>
             <button className="btn" disabled={!cart.length || busy} onClick={() => pay("cash")}>نقدًا</button>
             <button className="btn" disabled={!cart.length || busy} onClick={() => pay("card")}>مدى / بطاقة</button>
+          </div>
+          <div className="scan" style={{ marginTop: 8 }}>
+            <select value={cust} onChange={(e) => setCust(e.target.value)} aria-label="العميل">
+              <option value="">بدون عميل</option>{customers.map((c) => <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ""}</option>)}
+            </select>
+            <button className="btn ghost" disabled={!cart.length || busy || !cust} onClick={() => pay("credit")}>آجل على العميل</button>
           </div>
           <button className="btn ghost" style={{ marginTop: 8, width: "100%", boxSizing: "border-box" }} disabled={!cart.length || busy} onClick={() => setCart([])}>إلغاء الفاتورة</button>
         </>)}

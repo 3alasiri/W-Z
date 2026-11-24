@@ -40,7 +40,7 @@ export default function ReceiveClient({ products, locs, recent }: { products: P[
   }
 
   return (<>
-    <div className="head"><div><h1>استلام بضاعة</h1><div className="sub">امسح المنتج ثم أدخل الكمية وتاريخ الصلاحية. كل استلام يُسجَّل كدفعة مستقلة.</div></div></div>
+    <div className="head"><div><h1>استلام بضاعة</h1><div className="sub">امسح المنتج ثم أدخل الكمية وتاريخ الصلاحية. كل استلام يُسجَّل كدفعة مستقلة ويُقيَّد على مورد المنتج. لاستلام أمر شراء استخدم صفحة المشتريات.</div></div></div>
     <div className="card"><BarcodeInput onScan={onScan} />
       {miss && <div className="err" style={{ marginTop: 10 }}>الباركود {miss} غير معرّف. <Link href="/products">عرّفه في صفحة المنتجات</Link> ثم أعد المسح.</div>}
       {msg && <div className={msg.t === "err" ? "err" : "okmsg"} style={{ marginTop: 10 }}>{msg.m}</div>}
@@ -51,7 +51,7 @@ export default function ReceiveClient({ products, locs, recent }: { products: P[
         <div className="form">
           <div className="field"><label htmlFor="rq">الكمية</label><input id="rq" type="number" min="0.001" step="any" required value={qty} onChange={(e) => setQty(e.target.value)} /></div>
           <div className="field"><label htmlFor="re">تاريخ الصلاحية</label><input id="re" type="date" value={exp} onChange={(e) => setExp(e.target.value)} /></div>
-          <div className="field"><label htmlFor="rc">تكلفة الوحدة</label><input id="rc" type="number" step="0.01" min="0" value={cost} onChange={(e) => setCost(e.target.value)} /></div>
+          <div className="field"><label htmlFor="rc">تكلفة الوحدة (قبل الضريبة)</label><input id="rc" type="number" step="0.01" min="0" value={cost} onChange={(e) => setCost(e.target.value)} /></div>
           <div className="field"><label htmlFor="rl">الموقع</label><select id="rl" value={loc} onChange={(e) => setLoc(e.target.value)}>{locs.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}</select></div>
           <div className="field"><label htmlFor="rr">رقم فاتورة المورد</label><input id="rr" value={ref} onChange={(e) => setRef(e.target.value)} /></div>
           <button className="btn">تسجيل الاستلام</button>
