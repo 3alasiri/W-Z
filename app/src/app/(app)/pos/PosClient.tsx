@@ -5,7 +5,7 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import { SAR, num } from "@/lib/format";
 import BarcodeInput from "@/components/BarcodeInput";
 
-type P = { id: string; barcode: string; name: string; price: number; stock: number };
+type P = { id: string; barcode: string; name: string; price: number; list_price: number; stock: number };
 type Line = { p: P; q: number };
 type Receipt = { number: number; total: number; vat: number; subtotal: number; method: string; lines: Line[]; at: string };
 const METHODS: Record<string, string> = { cash: "نقدًا", card: "مدى / بطاقة", credit: "آجل" };
@@ -61,7 +61,7 @@ export default function PosClient({ storeId, products, store, customers }: { sto
         <input placeholder="أو ابحث بالاسم" value={q} onChange={(e) => setQ(e.target.value)} style={{ margin: "12px 0" }} aria-label="بحث بالاسم" />
         <div className="chips">{quick.map((p) => (
           <button key={p.id} className="chip" onClick={() => add(p)} disabled={Number(p.stock) <= 0} style={Number(p.stock) <= 0 ? { opacity: .45 } : undefined}>
-            <b>{p.name}</b>{SAR(p.price)} · <span className="muted">{num(p.stock)}</span></button>))}
+            <b>{p.name}</b>{SAR(p.price)}{Number(p.price) < Number(p.list_price) && <span className="pill p-warn" style={{ marginInlineStart: 4 }}>عرض</span>} · <span className="muted">{num(p.stock)}</span></button>))}
           {products.length === 0 && <p className="muted">أضف منتجات واستلم بضاعة أولًا.</p>}
         </div>
       </div>

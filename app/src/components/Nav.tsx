@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
 const LINKS = [
-  ["/", "لوحة القيادة"], ["/pos", "نقطة البيع"], ["/orders", "الطلبات"], ["/products", "المنتجات"],
+  ["/", "لوحة القيادة"], ["/assistant", "المساعد الذكي"], ["/insights", "الذكاء والتحليلات"], ["/pos", "نقطة البيع"], ["/orders", "الطلبات"], ["/products", "المنتجات"],
   ["/receive", "استلام بضاعة"], ["/alerts", "التنبيهات"], ["/purchasing", "المشتريات"],
   ["/suppliers", "الموردون"], ["/customers", "العملاء"], ["/sales", "المبيعات"], ["/accounting", "المحاسبة"], ["/team", "الفريق"], ["/settings", "الإعدادات"],
 ] as const;
