@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { supabaseServer } from "@/lib/supabase-server";
+import { cookies } from "next/headers";
+import { STORE_COOKIE, supabaseServer } from "@/lib/supabase-server";
 import { storeSnapshot } from "@/lib/store-snapshot";
 
 export const runtime = "nodejs";
@@ -20,7 +21,10 @@ export async function POST(req: Request) {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return new Response("سجّل الدخول أولًا", { status: 401 });
-  const { data: m } = await sb.from("store_members").select("role, stores(id,name)").eq("user_id", user.id).limit(1).maybeSingle();
+  // الفرع الحالي من الكوكي، وإلا أول فرع
+  const sid = (await cookies()).get(STORE_COOKIE)?.value;
+  const { data: all } = await sb.from("store_members").select("role, stores(id,name)").eq("user_id", user.id);
+  const m = all?.find((x) => (x.stores as unknown as { id: string }).id === sid) ?? all?.[0];
   if (!m || (m.role !== "owner" && m.role !== "manager")) return new Response("المساعد متاح للمالك والمدير فقط", { status: 403 });
   if (!process.env.ANTHROPIC_API_KEY) return new Response("المساعد غير مفعّل: أضف المتغير ANTHROPIC_API_KEY في إعدادات الخادم.", { status: 503 });
 
@@ -34,7 +38,7 @@ export async function POST(req: Request) {
   if (!messages.length || messages[messages.length - 1].role !== "user") return new Response("اكتب سؤالك", { status: 400 });
 
   const s = m.stores as unknown as { id: string; name: string };
-  const snapshot = await storeSnapshot({ sb, storeId: s.id, storeName: s.name, role: m.role, userId: user.id });
+  const snapshot = await storeSnapshot({ sb, storeId: s.id, storeName: s.name });
 
   const client = new Anthropic();
   const enc = new TextEncoder();

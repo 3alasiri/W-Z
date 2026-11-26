@@ -55,6 +55,7 @@ function LoginForm() {
           <button type="button" className="btn ghost" onClick={() => setMode(mode === "in" ? "up" : "in")}>
             {mode === "in" ? "ليس لديك حساب؟ أنشئ حسابًا" : "لديك حساب؟ سجّل الدخول"}
           </button>
+          <a href="/stores" className="link" style={{ textAlign: "center" }}>تريد الطلب من بقالة؟ تصفّح بقالات الحي</a>
         </form>
       </div>
     </div>

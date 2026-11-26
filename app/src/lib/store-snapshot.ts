@@ -3,7 +3,7 @@ import type { Ctx } from "./supabase-server";
 const r2 = (n: unknown) => Math.round(Number(n ?? 0) * 100) / 100;
 
 /** لقطة مختصرة من بيانات المتجر يستند إليها المساعد. تُقرأ بصلاحيات المستخدم نفسه. */
-export async function storeSnapshot({ sb, storeId, storeName }: Ctx) {
+export async function storeSnapshot({ sb, storeId, storeName }: Pick<Ctx, "sb" | "storeId" | "storeName">) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const today = now.toISOString().slice(0, 10);

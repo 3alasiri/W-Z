@@ -21,7 +21,11 @@ const GROUPS: { g: string; items: L[] }[] = [
     { href: "/accounting", t: "المحاسبة", i: "calc" }, { href: "/team", t: "الفريق", i: "team" }, { href: "/settings", t: "الإعدادات", i: "gear" }] },
 ];
 
-export default function Nav({ storeName, alerts, drafts, newOrders }: { storeName: string; alerts: number; drafts: number; newOrders: number }) {
+type SR = { id: string; name: string; role: string };
+const ROLE: Record<string, string> = { owner: "مالك", manager: "مدير", cashier: "كاشير", stock: "مخزون", driver: "مندوب" };
+
+export default function Nav({ storeName, storeId, stores, admin, alerts, drafts, newOrders }:
+  { storeName: string; storeId: string; stores: SR[]; admin: boolean; alerts: number; drafts: number; newOrders: number }) {
   const p = usePathname(); const r = useRouter();
   const counts = { alerts, drafts, orders: newOrders };
   return (
@@ -39,6 +43,19 @@ export default function Nav({ storeName, alerts, drafts, newOrders }: { storeNam
         })}
       </div>))}
       <div className="foot">
+        <div className="branch">
+          <label htmlFor="branch" className="group" style={{ padding: 0 }}>الفرع</label>
+          <select id="branch" value={storeId} onChange={async (e) => {
+            const res = await fetch("/api/store", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: e.target.value }) });
+            if (res.ok) window.location.assign("/"); // تحميل كامل لأن كل بيانات الصفحة تتغير مع الفرع
+          }}>
+            {stores.map((s) => <option key={s.id} value={s.id}>{s.name} · {ROLE[s.role] ?? s.role}</option>)}
+          </select>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link href="/onboarding?new=1" prefetch={false} className="mini">+ إضافة فرع</Link>
+            {admin && <Link href="/admin" prefetch={false} className="mini">إدارة المنصة</Link>}
+          </div>
+        </div>
         <AppearanceMini />
         <div className="who"><b>{storeName.slice(0, 1)}</b><span style={{ flex: 1 }}>{storeName}</span>
           <button className="link" onClick={async () => { await supabaseBrowser().auth.signOut(); r.replace("/login"); r.refresh(); }}>خروج</button></div>

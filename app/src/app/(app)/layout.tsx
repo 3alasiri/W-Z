@@ -5,16 +5,17 @@ import { requireStore } from "@/lib/supabase-server";
 export const dynamic = "force-dynamic";
 
 export default async function Shell({ children }: { children: React.ReactNode }) {
-  const { sb, storeId, storeName, role } = await requireStore();
+  const { sb, storeId, storeName, role, stores } = await requireStore();
   if (role === "driver") redirect("/driver");
-  const [{ count }, { count: drafts }, { count: newOrders }] = await Promise.all([
+  const [{ count }, { count: drafts }, { count: newOrders }, { data: admin }] = await Promise.all([
     sb.from("stock_alerts").select("*", { count: "exact", head: true }).eq("store_id", storeId),
     sb.from("purchase_orders").select("*", { count: "exact", head: true }).eq("store_id", storeId).in("status", ["draft", "approved"]),
     sb.from("orders").select("*", { count: "exact", head: true }).eq("store_id", storeId).eq("status", "new"),
+    sb.rpc("is_platform_admin"),
   ]);
   return (
     <div className="app">
-      <Nav storeName={storeName} alerts={count ?? 0} drafts={drafts ?? 0} newOrders={newOrders ?? 0} />
+      <Nav storeName={storeName} storeId={storeId} stores={stores} admin={!!admin} alerts={count ?? 0} drafts={drafts ?? 0} newOrders={newOrders ?? 0} />
       <main><div className="wrap">{children}</div></main>
     </div>
   );

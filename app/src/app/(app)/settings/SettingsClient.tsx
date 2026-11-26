@@ -6,7 +6,7 @@ import Appearance from "@/components/Appearance";
 
 type S = Record<string, string | number | boolean | null>;
 const F = [
-  ["name", "اسم المتجر", "text"], ["phone", "جوال المتجر", "tel"], ["address", "العنوان", "text"], ["vat_number", "الرقم الضريبي", "text"],
+  ["name", "اسم المتجر", "text"], ["phone", "جوال المتجر", "tel"], ["address", "العنوان", "text"], ["district", "الحي", "text"], ["city", "المدينة", "text"], ["vat_number", "الرقم الضريبي", "text"],
   ["slug", "رابط المتجر (أحرف إنجليزية صغيرة وأرقام)", "text"], ["delivery_fee", "رسوم التوصيل (شاملة الضريبة)", "number"],
   ["min_order", "الحد الأدنى للطلب", "number"], ["delivery_radius_km", "نطاق التوصيل (كم)", "number"], ["expiry_warn_days", "التنبيه قبل انتهاء الصلاحية (أيام)", "number"],
 ] as const;
