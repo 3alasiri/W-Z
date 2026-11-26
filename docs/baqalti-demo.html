@@ -138,6 +138,9 @@ th{color:var(--muted);font-size:12px;font-weight:600;background:var(--panel-2)} 
 
 @media (max-width:900px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:1fr} .tabs{order:3;margin:0;width:100%} .posgrid{max-height:none}}
 @media (max-width:480px){.prods{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px} .prod{padding:9px;border-radius:15px} .hero{padding:20px} .hero h1{font-size:21px} h1{font-size:21px}}
+.storesel{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}.storesel select{width:auto;padding:6px 10px;font-size:13px;border-radius:10px}
+.stores{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.store{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:10px;padding:16px;border-radius:18px;background:var(--panel,#fff);border:1px solid var(--line);transition:transform .15s,box-shadow .15s}.store:hover,.store:focus-visible{transform:translateY(-2px);box-shadow:0 10px 30px -12px rgba(0,0,0,.25)}.store[aria-disabled=true]{opacity:.55;cursor:default}.store .av{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:var(--brand-soft,#e8edf7);color:var(--brand);font-size:20px;font-weight:800;flex:none}.store .shead{display:flex;gap:12px;align-items:center}.store .chips{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:720px){.storesel span{display:none}}
 .form{display:grid;gap:10px}.form label{display:grid;gap:4px;font-size:13px;font-weight:600}.form input[type=radio]{width:18px;height:18px;flex:none;margin:0;padding:0;accent-color:var(--accent)}.form textarea{font:inherit;width:100%;border:1px solid var(--line-2,#ddd);border-radius:12px;padding:10px;background:inherit;color:inherit;resize:vertical}.form .err{color:#c0392b;font-size:12px;min-height:14px}.demo-tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--line-2,#e5e7eb);margin-inline-start:6px;vertical-align:middle}
 </style>
 </head>
@@ -145,8 +148,9 @@ th{color:var(--muted);font-size:12px;font-weight:600;background:var(--panel-2)} 
 <header class="top"><div class="in">
   <div class="logo"><i>ب</i><div>بقالتي الذكية<small>نموذج تفاعلي</small></div></div>
   <nav class="tabs" role="tablist" aria-label="الشاشات">
-    <button role="tab" id="t-shop" aria-controls="v-shop" aria-selected="true" data-v="shop" class="on">متجر العميل</button><button role="tab" id="t-pos" aria-controls="v-pos" aria-selected="false" tabindex="-1" data-v="pos">نقطة البيع</button><button role="tab" id="t-dash" aria-controls="v-dash" aria-selected="false" tabindex="-1" data-v="dash">لوحة القيادة</button><button role="tab" id="t-products" aria-controls="v-products" aria-selected="false" tabindex="-1" data-v="products">المنتجات</button>
+    <button role="tab" id="t-dir" aria-controls="v-dir" aria-selected="true" data-v="dir" class="on">البقالات</button><button role="tab" id="t-shop" aria-controls="v-shop" aria-selected="false" tabindex="-1" data-v="shop">متجر العميل</button><button role="tab" id="t-pos" aria-controls="v-pos" aria-selected="false" tabindex="-1" data-v="pos">نقطة البيع</button><button role="tab" id="t-dash" aria-controls="v-dash" aria-selected="false" tabindex="-1" data-v="dash">لوحة القيادة</button><button role="tab" id="t-products" aria-controls="v-products" aria-selected="false" tabindex="-1" data-v="products">المنتجات</button><button role="tab" id="t-admin" aria-controls="v-admin" aria-selected="false" tabindex="-1" data-v="admin">إدارة المنصة</button>
   </nav>
+  <label class="storesel"><span>البقالة</span><select id="storeSel" aria-label="البقالة الحالية"></select></label>
   <div class="themes" role="group" aria-label="المظهر">
     <button data-t="royal" class="on" aria-pressed="true" title="ملكي" aria-label="مظهر ملكي" style="background:linear-gradient(135deg,#f4f5f9 45%,#1f3a6e 45%)"></button>
     <button data-t="rose" aria-pressed="false" title="عنّابي" aria-label="مظهر عنّابي" style="background:linear-gradient(135deg,#f8f4f5 45%,#7d2443 45%)"></button>
@@ -155,9 +159,14 @@ th{color:var(--muted);font-size:12px;font-weight:600;background:var(--panel-2)} 
 </div></header>
 
 <main>
-  <section id="v-shop" role="tabpanel" aria-labelledby="t-shop" class="view">
-    <div class="hero"><h1>بقالة الياسمين</h1><p>منتجاتك اليومية من بقالة حيّك، بالحبة أو بالعائلي والجملة</p>
-      <div class="meta"><span>توصيل خلال 30-45 دقيقة</span><span>رسوم التوصيل 7 ر.س</span><span>الدفع عند الاستلام أو مدى</span></div></div>
+  <section id="v-dir" role="tabpanel" aria-labelledby="t-dir" class="view">
+    <div class="hero"><h1>بقالات الحي</h1><p>منصة واحدة لعدة بقالات: لكل بقالة منتجاتها وأسعارها ومخزونها وطلباتها. اختر بقالتك واطلب منها.</p></div>
+    <div class="bar"><input id="dq" placeholder="ابحث باسم البقالة أو الحي" aria-label="بحث في البقالات" style="flex:1;min-width:180px"></div>
+    <div class="stores" id="stores"></div>
+  </section>
+
+  <section id="v-shop" role="tabpanel" aria-labelledby="t-shop" class="view" hidden>
+    <div class="hero" id="shopHero"></div>
     <div class="bar"><div class="seg" id="shopView" role="group" aria-label="طريقة العرض"><button data-k="all" class="on" aria-pressed="true">كل المنتجات</button><button data-k="single" aria-pressed="false">بالحبة</button><button data-k="packs" aria-pressed="false">العائلي والجملة</button></div>
       <input id="q" placeholder="ابحث عن منتج" aria-label="بحث" style="flex:1;min-width:180px"></div>
     <div class="chips" id="cats" style="margin-bottom:14px"></div>
@@ -190,7 +199,12 @@ th{color:var(--muted);font-size:12px;font-weight:600;background:var(--panel-2)} 
     <div class="head"><div><h1>المنتجات</h1><div class="sub" id="pcount"></div></div></div>
     <div class="card tbl"><table><thead><tr><th>المنتج</th><th>الفئة</th><th>المخزون</th><th>سعر الحبة</th><th>العبوات (العائلي والجملة)</th></tr></thead><tbody id="ptable"></tbody></table></div>
   </section>
-  <p class="note">نموذج تفاعلي ببيانات تجريبية ثابتة داخل الملف، والصلاحيات (عميل/كاشير/مالك) معروضة معًا للتجربة فقط. صور المنتجات رسمية من موقع شركة المراعي. لا يُحفظ أي شيء.</p>
+  <section id="v-admin" role="tabpanel" aria-labelledby="t-admin" class="view" hidden>
+    <div class="head"><div><h1>إدارة المنصة <span class="demo-tag">بيانات تجريبية</span></h1><div class="sub">كل البقالات المسجّلة، وتفعيلها أو إيقافها</div></div></div>
+    <div class="grid g4" id="akpis"></div>
+    <div class="card tbl" style="margin-top:16px"><table><thead><tr><th>البقالة</th><th>المالك</th><th>المنتجات</th><th>مبيعات 30 يومًا</th><th>طلبات أونلاين</th><th>الحالة</th><th></th></tr></thead><tbody id="atable"></tbody></table></div>
+  </section>
+  <p class="note">نموذج تفاعلي متعدد البقالات ببيانات تجريبية ثابتة داخل الملف، والصلاحيات (عميل/كاشير/مالك/مدير المنصة) معروضة معًا للتجربة فقط. صور المنتجات رسمية من موقع شركة المراعي. لا يُحفظ أي شيء.</p>
 </main>
 <div class="cartbar" id="cartbar" hidden></div>
 <div class="drawer" id="drawer" hidden></div>
@@ -204,15 +218,24 @@ const N = (n) => Number(n).toLocaleString("ar-SA", { maximumFractionDigits: 1 })
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-// المنتجات: المخزون بالحبة، والعبوات تُحسب منها
-const P = CATALOG.map((r, i) => ({ bc: r[0], name: r[1], cat: r[2], sup: r[3], cost: r[4], price: r[5], rate: r[6], shelf: r[7], img: IMGS[r[0]],
+// البقالات: كل بقالة لها أسعارها ومخزونها وعروضها
+const STORES = [
+  { id: "yas", name: "بقالة الياسمين", district: "الياسمين", owner: "أبو فهد", km: 0.6, fee: 7, min: 25, open: true, active: true, mult: 1, stockMul: 1, seed: 0, offers: ["6281007040655", "6281007110402"], sales: 38450, orders: 212 },
+  { id: "nar", name: "بقالة النرجس", district: "النرجس", owner: "سالم", km: 1.4, fee: 5, min: 30, open: true, active: true, mult: 0.97, stockMul: 1.4, seed: 3, offers: ["2000000000152"], sales: 51200, orders: 318 },
+  { id: "mal", name: "ميني ماركت الملقا", district: "الملقا", owner: "نورة", km: 2.8, fee: 0, min: 50, open: true, active: true, mult: 1.04, stockMul: 0.8, seed: 5, offers: ["2000000000213", "2000000000183"], sales: 27900, orders: 143 },
+  { id: "rab", name: "تموينات الربوة", district: "الربوة", owner: "خالد", km: 4.9, fee: 10, min: 20, open: false, active: true, mult: 0.99, stockMul: 0.6, seed: 2, offers: [], sales: 12300, orders: 41 },
+];
+let cur = 0; const S = () => STORES[cur];
+const build = (st) => CATALOG.map((r, i) => ({ bc: r[0], name: r[1], cat: r[2], sup: r[3], cost: r[4], price: r[5], rate: r[6], shelf: r[7], img: IMGS[r[0]],
   packs: r[8].map((k, j) => ({ id: r[0] + "-" + j, name: k[0], units: k[1], price: k[2], bc: "2" + r[0].slice(1, 12) + (j + 1) })),
-  stock: Math.round(r[6] * (i % 5 === 1 ? 0.9 : 6 + (i % 7))), offer: ["6281007040655", "6281007110402"].includes(r[0]) ? 25 : 0 }));
-P.find((p) => p.bc === "6281007032261").stock = 7;
+  stock: Math.round(r[6] * st.stockMul * ((i + st.seed) % 5 === 1 ? 0.9 : 6 + ((i + st.seed) % 7))), offer: st.offers.includes(r[0]) ? 25 : 0 }))
+  .map((p) => (st.mult === 1 ? p : { ...p, price: +(p.price * st.mult).toFixed(2), packs: p.packs.map((k) => ({ ...k, price: +(k.price * st.mult).toFixed(2) })) }));
+const DATA = STORES.map((st) => { const ps = build(st); if (st.id === "yas") ps.find((p) => p.bc === "6281007032261").stock = 7; return ps; });
+let P = DATA[0];
 const fx = (p, v) => +(v * (1 - p.offer / 100)).toFixed(2);
 const opts = (p) => [{ key: p.bc + "|s", label: "حبة", units: 1, price: fx(p, p.price), orig: p.price, pack: null },
   ...p.packs.map((k) => ({ key: p.bc + "|" + k.id, label: k.name, short: k.name.split(" ")[0] + " ×" + N(k.units), units: k.units, price: fx(p, k.price), orig: k.price, pack: k }))];
-const byKey = {}; P.forEach((p) => opts(p).forEach((o) => (byKey[o.key] = { p, o })));
+let byKey = {}; const index = () => { byKey = {}; P.forEach((p) => opts(p).forEach((o) => (byKey[o.key] = { p, o }))); }; index();
 const img = (p, cls = "") => `<div class="pimg ${cls}"><img src="${p.img}" alt="${esc(p.name)}" loading="lazy"></div>`;
 let toastT; const toast = (t) => { const e = $("#toast"); e.textContent = t; e.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove("show"), 1800); };
 
@@ -287,7 +310,7 @@ function trap(e) {
 function openCart() {
   const d = $("#drawer"); if (d.hidden) { opener = document.activeElement; document.addEventListener("keydown", trap); }
   d.hidden = false;
-  const t = cartTotal(), fee = co.mode === "pickup" ? 0 : 7;
+  const t = cartTotal(), fee = co.mode === "pickup" ? 0 : S().fee;
   if (!cartCount() && step !== "done") step = "cart";
   const head = (h) => `<div class="head" style="margin:0"><h2 style="margin:0" id="dlgTitle">${h}</h2><button class="btn ghost sm" id="closeCart" aria-label="إغلاق">إغلاق</button></div>`;
   const totals = `<div class="card"><div class="total"><span>المنتجات</span><span>${SAR(t)}</span></div><div class="total"><span>${co.mode === "pickup" ? "استلام من المتجر" : "التوصيل"}</span><span>${SAR(fee)}</span></div>
@@ -295,13 +318,14 @@ function openCart() {
   let body;
   if (step === "cart") body = head("سلتك") + (cartCount() ? Object.entries(cart).map(([k, n]) => { const { p, o } = byKey[k]; return `<div class="line">${img(p)}<div style="flex:1;min-width:0"><div class="t">${esc(p.name)}</div><div class="s">${o.units > 1 ? esc(o.label) + " · " : ""}${SAR(o.price)}</div></div>
       <div class="qty" style="width:110px" role="group" aria-label="كمية ${esc(p.name)}"><button data-d="-1" data-key="${k}" aria-label="إنقاص ${esc(p.name)}">−</button><b aria-live="polite">${N(n)}</b><button data-d="1" data-key="${k}" aria-label="زيادة ${esc(p.name)}">+</button></div></div>`; }).join("") + totals
-      + (t < 25 ? `<div class="pill p-warn" style="justify-content:center">الحد الأدنى للطلب ${SAR(25)}</div>` : "")
-      + `<button class="btn w" id="toCheckout" ${t < 25 ? "disabled" : ""}>متابعة لإتمام الطلب</button>` : `<p class="muted">السلة فارغة.</p>`);
+      + (t < S().min ? `<div class="pill p-warn" style="justify-content:center">الحد الأدنى للطلب ${SAR(S().min)}</div>` : "")
+      + (!S().open ? `<div class="pill p-bad" style="justify-content:center">البقالة مغلقة حاليًا ولا تستقبل طلبات</div>` : "")
+      + `<button class="btn w" id="toCheckout" ${t < S().min || !S().open ? "disabled" : ""}>متابعة لإتمام الطلب</button>` : `<p class="muted">السلة فارغة.</p>`);
   else if (step === "checkout") body = head("إتمام الطلب") + `<form class="form" id="coForm" novalidate>
       <label>الاسم<input name="name" autocomplete="name" required value="${esc(co.name)}"></label>
       <label>الجوال<input name="phone" inputmode="tel" autocomplete="tel" placeholder="05xxxxxxxx" required value="${esc(co.phone)}" dir="ltr"></label>
       <fieldset style="border:none;padding:0;margin:0;display:grid;gap:6px"><legend style="font-size:13px;font-weight:600;margin-bottom:4px">طريقة الاستلام</legend>
-        <label style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="radio" name="mode" value="delivery" ${co.mode === "delivery" ? "checked" : ""}> توصيل (${SAR(7)})</label>
+        <label style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="radio" name="mode" value="delivery" ${co.mode === "delivery" ? "checked" : ""}> توصيل (${S().fee ? SAR(S().fee) : "مجانًا"})</label>
         <label style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="radio" name="mode" value="pickup" ${co.mode === "pickup" ? "checked" : ""}> استلام من المتجر (مجانًا)</label></fieldset>
       ${co.mode === "delivery" ? `<label>عنوان التوصيل<textarea name="addr" rows="2" required placeholder="الحي، الشارع، رقم المبنى">${esc(co.addr)}</textarea></label>` : ""}
       <fieldset style="border:none;padding:0;margin:0;display:grid;gap:6px"><legend style="font-size:13px;font-weight:600;margin-bottom:4px">الدفع</legend>
@@ -322,9 +346,9 @@ function openCart() {
       if (err) { $("#coErr").textContent = err[1]; const x = f.elements[err[0]]; x.setAttribute("aria-invalid", "true"); x.focus(); return; }
       const bad = Object.entries(cart).find(([k]) => used(byKey[k].p.bc) > byKey[k].p.stock);
       if (bad) { $("#coErr").textContent = "تغيّر المخزون: " + byKey[bad[0]].p.name + " لم يعد متوفرًا بالكمية المطلوبة"; return; }
-      const no = ++orderNo, tot = cartTotal() + (co.mode === "pickup" ? 0 : 7);
+      const no = ++orderNo, tot = cartTotal() + (co.mode === "pickup" ? 0 : S().fee);
       Object.entries(cart).forEach(([k, n]) => (byKey[k].p.stock -= n * byKey[k].o.units)); Object.keys(cart).forEach((k) => delete cart[k]);
-      co.done = `طلب #${N(no)} باسم ${esc(co.name)} · ${SAR(tot)} · ${co.pay === "cash" ? "نقدًا" : "مدى"} عند الاستلام<br>${co.mode === "pickup" ? "جاهز للاستلام من المتجر خلال 15 دقيقة." : "يصلك إلى: " + esc(co.addr) + " خلال 30-45 دقيقة."}`;
+      co.done = `${esc(S().name)}<br>طلب #${N(no)} باسم ${esc(co.name)} · ${SAR(tot)} · ${co.pay === "cash" ? "نقدًا" : "مدى"} عند الاستلام<br>${co.mode === "pickup" ? "جاهز للاستلام من المتجر خلال 15 دقيقة." : "يصلك إلى: " + esc(co.addr) + " خلال 30-45 دقيقة."}`;
       step = "done"; openCart(); renderShop(); renderBar(); renderPos(); };
   }
   ($("#coForm input") || d.querySelector(".panel button:not([disabled])")).focus();
@@ -358,7 +382,7 @@ $("#scan").onsubmit = (e) => { e.preventDefault(); const c = $("#bc").value.trim
 let lastReceipt = null, receiptNo = 2400;
 function renderBill() {
   const t = bill.reduce((a, l) => a + byKey[l.key].o.price * l.q, 0), sub = t / 1.15;
-  if (lastReceipt) { const r = lastReceipt; $("#bill").innerHTML = `<div class="receipt"><h2 style="text-align:center;margin-bottom:2px">بقالة الياسمين</h2>
+  if (lastReceipt) { const r = lastReceipt; $("#bill").innerHTML = `<div class="receipt"><h2 style="text-align:center;margin-bottom:2px">${esc(S().name)}</h2>
     <div class="pill p-warn" style="justify-content:center;margin:6px 0">فاتورة تجريبية — ليست فاتورة ضريبية فعلية</div><div class="muted" style="text-align:center;font-size:12px">رقم ${N(r.no)} · رقم ضريبي تجريبي 300000000000003<br>رمز QR توضيحي لا يُتحقق منه</div><hr style="border:none;border-top:1px dashed var(--line-2)">
     ${r.lines.map((l) => `<div class="row"><span>${esc(l.name)} × ${N(l.q)}</span><span>${SAR(l.sum)}</span></div>`).join("")}
     <div class="row"><span>قبل الضريبة</span><span>${SAR(r.t / 1.15)}</span></div><div class="row"><span>الضريبة 15٪</span><span>${SAR(r.t - r.t / 1.15)}</span></div>
@@ -381,10 +405,12 @@ $("#bill").onclick = (e) => { const b = e.target.closest("button"); if (!b) retu
 const QR_SVG = "<svg class=\"qr\" role=\"img\" aria-label=\"رمز QR توضيحي للفاتورة التجريبية\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 47 47\" shape-rendering=\"crispEdges\"><path fill=\"#ffffff\" d=\"M0 0h47v47H0z\"/><path stroke=\"#141a2e\" d=\"M1 1.5h7m1 0h7m5 0h1m1 0h2m2 0h1m3 0h2m4 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m3 0h3m2 0h2m1 0h2m1 0h6m6 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h1m4 0h1m2 0h1m2 0h1m1 0h3m3 0h1m1 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m1 0h1m2 0h4m1 0h1m3 0h9m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h4m5 0h1m2 0h5m1 0h3m1 0h1m2 0h4m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h1m1 0h4m4 0h1m3 0h2m3 0h2m1 0h2m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m2 0h1m1 0h3m2 0h2m3 0h1m3 0h1m7 0h1M1 9.5h1m2 0h6m3 0h2m3 0h1m2 0h7m1 0h3m2 0h1m1 0h1m1 0h1m2 0h1m1 0h3M2 10.5h2m4 0h1m1 0h4m5 0h2m1 0h4m1 0h5m1 0h3m1 0h5m2 0h2M3 11.5h3m1 0h1m2 0h1m1 0h1m1 0h1m1 0h7m1 0h3m1 0h4m1 0h2m2 0h1m1 0h2m1 0h1m1 0h2M3 12.5h1m2 0h1m1 0h1m2 0h1m3 0h1m2 0h1m3 0h2m1 0h3m1 0h1m1 0h1m3 0h2m2 0h1m3 0h2M1 13.5h2m2 0h3m7 0h3m1 0h1m1 0h2m1 0h2m1 0h1m3 0h1m1 0h1m2 0h2m3 0h2m1 0h2M5 14.5h2m2 0h1m1 0h2m2 0h1m3 0h5m1 0h3m1 0h6m1 0h4m2 0h1m2 0h1M3 15.5h2m2 0h1m1 0h1m2 0h1m1 0h1m2 0h4m1 0h1m1 0h2m1 0h1m2 0h1m1 0h6m1 0h1m2 0h2M1 16.5h3m2 0h1m1 0h4m2 0h2m2 0h1m1 0h3m1 0h4m1 0h1m3 0h1m1 0h1m3 0h1m1 0h3M2 17.5h3m2 0h3m1 0h3m2 0h1m2 0h4m4 0h1m3 0h4m3 0h2m3 0h1m1 0h1M1 18.5h4m3 0h1m2 0h1m1 0h1m4 0h4m3 0h2m2 0h1m1 0h1m2 0h5m4 0h1M1 19.5h1m1 0h5m3 0h2m2 0h3m2 0h2m1 0h1m1 0h2m1 0h1m3 0h1m7 0h1m1 0h2m1 0h1M2 20.5h1m3 0h1m2 0h1m1 0h4m1 0h1m1 0h1m2 0h2m6 0h4m4 0h2m3 0h2M2 21.5h8m3 0h3m1 0h11m1 0h1m1 0h1m3 0h1m1 0h7M1 22.5h3m1 0h1m3 0h2m1 0h1m1 0h3m2 0h1m1 0h1m3 0h2m1 0h4m1 0h3m1 0h1m3 0h1m1 0h3M1 23.5h2m2 0h1m1 0h1m1 0h1m3 0h1m4 0h4m1 0h1m1 0h1m1 0h1m1 0h4m4 0h1m1 0h1m1 0h2m1 0h2M4 24.5h2m3 0h2m1 0h1m3 0h1m2 0h1m1 0h1m3 0h1m6 0h2m2 0h2m3 0h1m1 0h1M1 25.5h3m1 0h5m2 0h1m3 0h11m2 0h2m1 0h2m3 0h5m2 0h2M1 26.5h4m1 0h1m3 0h1m3 0h1m3 0h2m2 0h2m3 0h1m1 0h3m2 0h1m2 0h2m1 0h1m3 0h2M5 27.5h6m1 0h3m2 0h1m1 0h3m1 0h3m5 0h2m1 0h1m2 0h1m3 0h1m1 0h1M1 28.5h1m2 0h1m1 0h1m3 0h7m1 0h2m1 0h2m1 0h6m2 0h1m1 0h3m2 0h2m1 0h2m1 0h1M2 29.5h1m3 0h5m1 0h1m1 0h4m1 0h3m2 0h5m1 0h5m1 0h3m2 0h2m1 0h1M1 30.5h1m1 0h1m1 0h1m2 0h2m1 0h3m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h5m1 0h2m3 0h3m1 0h1M1 31.5h1m1 0h1m3 0h1m3 0h1m2 0h3m1 0h1m2 0h1m2 0h8m7 0h1m1 0h1m1 0h1m1 0h1M1 32.5h1m1 0h4m1 0h2m1 0h2m2 0h1m1 0h3m2 0h3m3 0h2m1 0h2m2 0h1m2 0h1m2 0h3m1 0h1M2 33.5h1m2 0h3m6 0h5m4 0h1m3 0h1m1 0h1m1 0h1m2 0h2m2 0h1m1 0h2m1 0h1M2 34.5h4m2 0h3m1 0h3m2 0h1m1 0h1m2 0h1m1 0h1m1 0h6m2 0h2m1 0h1m2 0h2m1 0h2M5 35.5h1m1 0h1m3 0h2m1 0h6m2 0h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h3m3 0h3M2 36.5h4m4 0h1m1 0h3m1 0h3m1 0h4m1 0h1m3 0h1m1 0h1m3 0h2m1 0h1m4 0h2M1 37.5h1m2 0h2m1 0h2m2 0h2m4 0h9m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 38.5h1m2 0h1m3 0h1m3 0h2m3 0h4m1 0h2m1 0h1m2 0h2m3 0h3m1 0h1M1 39.5h7m1 0h2m2 0h2m1 0h1m2 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m4 0h1m1 0h1m1 0h1M1 40.5h1m5 0h1m1 0h1m1 0h3m6 0h2m3 0h1m3 0h9m3 0h3m1 0h1M1 41.5h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h1m1 0h2m2 0h7m2 0h1m1 0h4m1 0h5m1 0h2M1 42.5h1m1 0h3m1 0h1m1 0h5m1 0h3m1 0h2m2 0h2m1 0h1m1 0h2m1 0h2m1 0h2m3 0h1m3 0h1m1 0h1M1 43.5h1m1 0h3m1 0h1m5 0h1m2 0h1m1 0h1m4 0h2m2 0h2m2 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 44.5h1m5 0h1m2 0h1m1 0h1m2 0h1m1 0h4m1 0h1m1 0h1m5 0h1m1 0h2m1 0h3m1 0h2m1 0h4M1 45.5h7m1 0h1m1 0h1m4 0h1m1 0h2m2 0h4m8 0h1m3 0h1\"/></svg>\n";
 
 // ===== لوحة القيادة =====
-$("#today").textContent = "بقالة الياسمين · " + new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" });
-const kp = [["مبيعات اليوم", SAR(2187.5)], ["عدد الفواتير", N(64)], ["مجمل الربح اليوم", SAR(512.4)], ["قيمة المخزون", SAR(P.reduce((a, p) => a + p.stock * p.cost, 0))]];
+function renderDash() {
+const k = S().sales / 38450;
+$("#today").textContent = S().name + " · " + new Date().toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" });
+const kp = [["مبيعات اليوم", SAR(2187.5 * k)], ["عدد الفواتير", N(Math.round(64 * k))], ["مجمل الربح اليوم", SAR(512.4 * k)], ["قيمة المخزون", SAR(P.reduce((a, p) => a + p.stock * p.cost, 0))]];
 $("#kpis").innerHTML = kp.map(([l, v]) => `<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
-const days = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"], vals = [2840, 3120, 2960, 3010, 3380, 4210, 4880], fc = [3150, 3290, 3060];
+const days = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"], vals = [2840, 3120, 2960, 3010, 3380, 4210, 4880].map((v) => Math.round(v * k)), fc = [3150, 3290, 3060].map((v) => Math.round(v * k));
 const mx = Math.max(...vals, ...fc);
 $("#chart").innerHTML = vals.map((v, i) => `<div><em>${N(v)}</em><span style="height:${v / mx * 100}%"></span><small>${days[i].slice(0, 3)}</small></div>`).join("")
   + fc.map((v, i) => `<div class="f"><em>${N(v)}</em><span style="height:${v / mx * 100}%"></span><small>${days[i].slice(0, 3)}</small></div>`).join("");
@@ -396,12 +422,51 @@ $("#recs").innerHTML = [
   ["", pick("2000000000183"), "الخبز والجبنة يُشتريان معًا", "38٪ من فواتير خبز لوزين فيها جبنة مثلثات. جرّب باقة فطور.", "إنشاء باقة"],
 ].map(([c, p, t, s, a]) => `<div class="rec ${c}">${img(p)}<div style="min-width:0"><div class="t">${t}</div><div class="s">${s}</div></div><button class="btn ghost sm" aria-label="${a} (تجريبي)" onclick="toast('عرض تجريبي: لا يُنفَّذ إجراء فعلي')">${a}</button></div>`).join("");
 
+}
 // ===== المنتجات =====
+function renderProducts() {
 $("#pcount").textContent = `${N(P.length)} منتجًا · ${N(P.reduce((a, p) => a + p.packs.length, 0))} عبوة عائلية وجملة`;
 $("#ptable").innerHTML = P.map((p) => `<tr><td><div class="thumb">${img(p)}<div><b>${esc(p.name)}</b><div class="muted" style="font-size:11px" dir="ltr">${p.bc}</div></div></div></td>
   <td>${esc(p.cat)}</td><td><span class="pill ${p.stock <= p.rate ? "p-bad" : p.stock <= p.rate * 3 ? "p-warn" : "p-ok"}">${N(p.stock)} حبة</span></td><td><b>${SAR(p.price)}</b></td>
   <td><div class="chips">${p.packs.map((k) => `<span class="pill p-info">${esc(k.name)} · ${SAR(k.price)}</span>`).join("") || '<span class="muted">مفرد فقط</span>'}</div></td></tr>`).join("");
+}
 
+// ===== البقالات وتعدد المتاجر =====
+const fillSel = () => { $("#storeSel").innerHTML = STORES.map((st, i) => `<option value="${i}" ${i === cur ? "selected" : ""}>${esc(st.name)}${st.active ? "" : " (موقوفة)"}</option>`).join(""); };
+function useStore(i, go) {
+  if (i !== cur && (cartCount() || bill.length)) toast("تم تفريغ السلة والفاتورة: لكل بقالة سلتها");
+  cur = i; P = DATA[i]; index(); Object.keys(cart).forEach((k) => delete cart[k]); Object.keys(sel).forEach((k) => delete sel[k]); bill.length = 0; lastReceipt = null;
+  fillSel(); renderHero(); renderShop(); renderPos(); renderBar(); renderDash(); renderProducts();
+  if (go) $("#t-" + go).click();
+}
+$("#storeSel").onchange = (e) => useStore(+e.target.value);
+function renderHero() { const st = S();
+  $("#shopHero").innerHTML = `<h1>${esc(st.name)}</h1><p>حي ${esc(st.district)} · منتجاتك اليومية بالحبة أو بالعائلي والجملة</p>
+    <div class="meta"><span>${st.open ? "توصيل خلال 30-45 دقيقة" : "مغلقة حاليًا"}</span><span>${st.fee ? "رسوم التوصيل " + SAR(st.fee) : "توصيل مجاني"}</span><span>الحد الأدنى ${SAR(st.min)}</span><span><button class="btn ghost sm" id="chStore">تغيير البقالة</button></span></div>`;
+  $("#chStore").onclick = () => $("#t-dir").click(); }
+let dq = ""; $("#dq").oninput = (e) => { dq = e.target.value.trim(); renderDir(); };
+function renderDir() {
+  const list = STORES.map((st, i) => ({ st, i })).filter(({ st }) => st.active && (!dq || st.name.includes(dq) || st.district.includes(dq))).sort((a, b) => a.st.km - b.st.km);
+  $("#stores").innerHTML = list.map(({ st, i }) => `<button class="store" data-i="${i}" aria-label="${esc(st.name)}، حي ${esc(st.district)}، ${N(st.km)} كم">
+    <div class="shead"><span class="av">${esc(st.district.replace(/^ال/, "")[0])}</span><div style="flex:1;min-width:0"><b>${esc(st.name)}</b><div class="muted" style="font-size:13px">حي ${esc(st.district)}</div></div><span class="pill p-info">${N(st.km)} كم</span></div>
+    <div class="chips"><span class="pill ${st.open ? "p-ok" : "p-bad"}">${st.open ? "يستقبل الطلبات" : "مغلق حاليًا"}</span>${st.km > 4 ? '<span class="pill p-warn">خارج نطاق التوصيل · استلام فقط</span>' : ""}
+      <span class="pill p-info">${st.fee ? "توصيل " + SAR(st.fee) : "توصيل مجاني"}</span><span class="pill p-info">الحد الأدنى ${SAR(st.min)}</span>${st.offers.length ? `<span class="pill p-warn">${N(st.offers.length)} عروض</span>` : ""}</div></button>`).join("") || '<p class="muted">لا بقالات مطابقة.</p>';
+}
+$("#stores").onclick = (e) => { const b = e.target.closest(".store"); if (b) useStore(+b.dataset.i, "shop"); };
+function renderAdmin() {
+  const act = STORES.filter((s) => s.active);
+  $("#akpis").innerHTML = [["البقالات المسجّلة", N(STORES.length)], ["النشطة", N(act.length)], ["مبيعات المنصة (30 يومًا)", SAR(STORES.reduce((a, s) => a + s.sales, 0))], ["طلبات أونلاين (30 يومًا)", N(STORES.reduce((a, s) => a + s.orders, 0))]]
+    .map(([l, v]) => `<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join("");
+  $("#atable").innerHTML = STORES.map((st, i) => `<tr><td><b>${esc(st.name)}</b><div class="muted" style="font-size:11px">حي ${esc(st.district)}</div></td><td>${esc(st.owner)}</td><td>${N(DATA[i].length)}</td><td>${SAR(st.sales)}</td><td>${N(st.orders)}</td>
+    <td><span class="pill ${st.active ? "p-ok" : "p-bad"}">${st.active ? "نشطة" : "موقوفة"}</span></td>
+    <td><button class="btn sm ${st.active ? "ghost" : ""}" data-a="${i}" aria-label="${st.active ? "إيقاف" : "تفعيل"} ${esc(st.name)}">${st.active ? "إيقاف" : "تفعيل"}</button></td></tr>`).join("");
+}
+$("#atable").onclick = (e) => { const b = e.target.closest("button[data-a]"); if (!b) return; const st = STORES[+b.dataset.a];
+  st.active = !st.active; toast(st.active ? "فُعّلت " + st.name : "أُوقفت " + st.name + " واختفت من دليل البقالات");
+  if (!st.active && STORES.indexOf(st) === cur) { const n = STORES.findIndex((x) => x.active); if (n >= 0) useStore(n); }
+  fillSel(); renderAdmin(); renderDir(); };
+
+fillSel(); renderHero(); renderDir(); renderDash(); renderProducts(); renderAdmin();
 renderShop(); renderPos(); renderBar();
 </script>
 </body>
